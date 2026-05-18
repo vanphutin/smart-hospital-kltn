@@ -1,0 +1,23 @@
+services:
+  postgres:
+    # Image kèm sẵn extension pgvector — cần thiết cho RAG hồ sơ bệnh án.
+    # Drop-in replacement của postgres:16, giữ nguyên volume dữ liệu.
+    image: pgvector/pgvector:pg16
+    container_name: sh-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sh_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sh_password}
+      POSTGRES_DB: ${POSTGRES_DB:-smart_hospital}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sh_user} -d ${POSTGRES_DB:-smart_hospital}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

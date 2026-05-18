@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #2A7DE1;
+  --color-secondary: #3DBE8B;
+  --color-background-light: #f8fafb;
+  --color-background-dark: #111a21;
+  
+  --animate-spin-slow: spin 3s linear infinite;
+  --animate-bounce-slow: bounce-slow 3s ease-in-out infinite;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(-5%); }
+  50% { transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(200%); }
+}
+
+@layer base {
+  body {
+    @apply bg-background-light text-slate-900 font-sans;
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "SmartHospital - Healthcare Booking Platform",
+  "description": "A comprehensive healthcare platform for booking doctor appointments, managing medical records, and tracking patient health.",
+  "requestFramePermissions": ["geolocation"]
+}
