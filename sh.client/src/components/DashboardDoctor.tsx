@@ -936,8 +936,27 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   onSetLeaveReason,
   onSubmitLeave,
 }) => {
-  const pendingPage = usePagination(pendingMedical, PAGE_SIZE.overview);
-  const recordsPage = usePagination(myRecords, PAGE_SIZE.overview);
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [recordsSearch, setRecordsSearch] = useState('');
+
+  const filteredPending = useMemo(() => {
+    const q = pendingSearch.trim().toLowerCase();
+    if (!q) return pendingMedical;
+    return pendingMedical.filter((a) =>
+      `${a.patientName} ${a.patientEmail}`.toLowerCase().includes(q),
+    );
+  }, [pendingMedical, pendingSearch]);
+
+  const filteredRecords = useMemo(() => {
+    const q = recordsSearch.trim().toLowerCase();
+    if (!q) return myRecords;
+    return myRecords.filter((r) =>
+      `${r.patientName} ${r.patientEmail}`.toLowerCase().includes(q),
+    );
+  }, [myRecords, recordsSearch]);
+
+  const pendingPage = usePagination(filteredPending, PAGE_SIZE.overview, pendingSearch);
+  const recordsPage = usePagination(filteredRecords, PAGE_SIZE.overview, recordsSearch);
   const leavePage = usePagination(leaveRequests, PAGE_SIZE.overview);
 
   return (
@@ -948,10 +967,22 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <FileText className="w-5 h-5" />
           </span>
-          <div>
+          <div className="flex-1 min-w-0">
             <h2 className="text-base font-bold text-slate-900">Hồ sơ sau ca khám</h2>
             <p className="text-xs text-slate-500">Đã qua giờ ca · đã cọc/xác nhận · chưa có hồ sơ</p>
           </div>
+          {pendingMedical.length > 0 && (
+            <div className="relative shrink-0 w-44 sm:w-52">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <input
+                type="search"
+                value={pendingSearch}
+                onChange={(e) => setPendingSearch(e.target.value)}
+                placeholder="Tìm bệnh nhân…"
+                className="w-full pl-8 pr-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-primary/25 focus:border-primary"
+              />
+            </div>
+          )}
         </div>
         <div className="p-4 sm:p-5">
           {pendingMedicalLoading ? (
@@ -963,6 +994,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               <UserRound className="w-10 h-10 mx-auto text-slate-300 mb-2" />
               <p className="text-sm font-medium text-slate-700">Không có ca chờ nhập hồ sơ</p>
               <p className="text-xs text-slate-500 mt-1">Khi có lịch đủ điều kiện, sẽ hiện tại đây.</p>
+            </div>
+          ) : filteredPending.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-center">
+              <p className="text-sm font-medium text-slate-700">Không tìm thấy bệnh nhân nào khớp</p>
+              <button type="button" onClick={() => setPendingSearch('')} className="mt-2 text-xs text-primary hover:underline">Xoá tìm kiếm</button>
             </div>
           ) : (
             <div className="min-h-0 max-h-[min(70vh,40rem)] overflow-y-auto overscroll-y-contain pr-1 sm:pr-2 [scrollbar-gutter:stable]">
@@ -1016,10 +1052,22 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-700">
             <FileText className="w-5 h-5" />
           </span>
-          <div>
+          <div className="flex-1 min-w-0">
             <h2 className="text-base font-bold text-slate-900">Hồ sơ đã lưu</h2>
             <p className="text-xs text-slate-500">Cập nhật nội dung khám (triệu chứng, chẩn đoán, điều trị)</p>
           </div>
+          {myRecords.length > 0 && (
+            <div className="relative shrink-0 w-44 sm:w-52">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <input
+                type="search"
+                value={recordsSearch}
+                onChange={(e) => setRecordsSearch(e.target.value)}
+                placeholder="Tìm bệnh nhân…"
+                className="w-full pl-8 pr-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-primary/25 focus:border-primary"
+              />
+            </div>
+          )}
         </div>
         <div className="p-4 sm:p-5">
           {myRecordsLoading ? (
@@ -1029,6 +1077,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           ) : myRecords.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-center text-sm text-slate-600">
               Chưa có hồ sơ nào. Sau khi nhập hồ sơ sau ca, danh sách sẽ hiện tại đây.
+            </div>
+          ) : filteredRecords.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-center">
+              <p className="text-sm font-medium text-slate-700">Không tìm thấy hồ sơ nào khớp</p>
+              <button type="button" onClick={() => setRecordsSearch('')} className="mt-2 text-xs text-primary hover:underline">Xoá tìm kiếm</button>
             </div>
           ) : (
             <div className="min-h-0 max-h-[min(70vh,40rem)] overflow-y-auto overscroll-y-contain pr-1 sm:pr-2 [scrollbar-gutter:stable]">
