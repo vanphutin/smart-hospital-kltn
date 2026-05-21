@@ -1,0 +1,4034 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartHospital Presentation</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #0a0e1a;
+        --surface: #111827;
+        --surface2: #1a2235;
+        --border: #1e2d45;
+        --accent: #00d4ff;
+        --accent2: #7c3aed;
+        --accent3: #10b981;
+        --text: #f0f4ff;
+        --text2: #94a3b8;
+        --text3: #4a5568;
+        --red: #ef4444;
+        --slide-w: 1280px;
+        --slide-h: 720px;
+      }
+
+      body {
+        background: #060912;
+        font-family: "Be Vietnam Pro", sans-serif;
+        color: var(--text);
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+        user-select: none;
+      }
+
+      /* Slide wrapper - auto scale to fill viewport */
+      #presentation {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: var(--slide-w);
+        height: var(--slide-h);
+        overflow: hidden;
+        transform-origin: center center;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .slide.active {
+        display: flex;
+      }
+
+      /* NAV */
+      #nav {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(10, 14, 26, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        padding: 10px 20px;
+        z-index: 999;
+      }
+
+      #nav-btns {
+        display: flex;
+        gap: 8px;
+      }
+
+      .nav-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text2);
+        padding: 6px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        transition: 0.2s;
+      }
+
+      .nav-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      #slide-counter {
+        font-size: 13px;
+        color: var(--text3);
+        min-width: 48px;
+        text-align: center;
+      }
+
+      /* VERTICAL DOTS - right side */
+      #dots-panel {
+        position: fixed;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        background: rgba(10, 14, 26, 0.75);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 14px 8px;
+        z-index: 999;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text3);
+        cursor: pointer;
+        transition: 0.3s;
+        flex-shrink: 0;
+      }
+
+      .dot.active {
+        background: var(--accent);
+        transform: scale(1.4);
+        box-shadow: 0 0 6px rgba(0, 212, 255, 0.6);
+      }
+
+      .dot:hover:not(.active) {
+        background: var(--text2);
+        transform: scale(1.2);
+      }
+
+      /* ===== SLIDE 1 - COVER ===== */
+      #s1 {
+        background: var(--bg);
+        justify-content: center;
+        align-items: center;
+      }
+
+      #s1::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse 80% 60% at 50% 50%,
+          #0d1f3c 0%,
+          transparent 70%
+        );
+      }
+
+      .s1-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--border) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        background-size: 60px 60px;
+        opacity: 0.3;
+      }
+
+      .s1-glow {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(0, 212, 255, 0.08) 0%,
+          transparent 70%
+        );
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .s1-content {
+        position: relative;
+        text-align: center;
+        z-index: 2;
+      }
+
+      .s1-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 212, 255, 0.08);
+        border: 1px solid rgba(0, 212, 255, 0.25);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 8px 20px;
+        border-radius: 50px;
+        margin-bottom: 36px;
+      }
+
+      .s1-badge::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        50% {
+          opacity: 0.5;
+          transform: scale(1.5);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes zoomIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes title-shimmer {
+        0% {
+          background-position: 0% center;
+        }
+        50% {
+          background-position: 100% center;
+        }
+        100% {
+          background-position: 0% center;
+        }
+      }
+
+      .s1-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 76px;
+        font-weight: 700;
+        letter-spacing: -2px;
+        line-height: 1;
+        margin-bottom: 16px;
+        background: linear-gradient(
+          120deg,
+          #c8d8f0 0%,
+          #ffffff 30%,
+          #00d4ff 50%,
+          #ffffff 70%,
+          #c8d8f0 100%
+        );
+        background-size: 250% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: title-shimmer 6s ease-in-out infinite;
+        filter: drop-shadow(0 2px 24px rgba(0, 212, 255, 0.12));
+      }
+
+      .s1-sub {
+        font-size: 18px;
+        color: var(--text2);
+        font-weight: 300;
+        margin-bottom: 48px;
+        letter-spacing: 0.5px;
+      }
+
+      .s1-tags {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .s1-tag {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        font-size: 13px;
+        padding: 8px 18px;
+        border-radius: 8px;
+      }
+
+      .s1-corner {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        opacity: 0.15;
+      }
+
+      .s1-corner.tl {
+        top: 40px;
+        left: 40px;
+        border-top: 2px solid var(--accent);
+        border-left: 2px solid var(--accent);
+      }
+
+      .s1-corner.br {
+        bottom: 80px;
+        right: 40px;
+        border-bottom: 2px solid var(--accent);
+        border-right: 2px solid var(--accent);
+      }
+
+      /* ===== SLIDE 2 - PROBLEM/SOLUTION ===== */
+      #s2 {
+        background: var(--bg);
+        padding: 48px 70px;
+      }
+
+      #s2 .slide-header {
+        margin-bottom: 28px;
+      }
+
+      .s2-grid {
+        display: grid;
+        grid-template-columns: 1fr 56px 1fr;
+        gap: 0;
+        flex: 1;
+        align-items: stretch;
+      }
+
+      .s2-col {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .s2-col-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        margin-bottom: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+      }
+
+      .s2-col-header.bad {
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+
+      .s2-col-header.good {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: #10b981;
+      }
+
+      .s2-item {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        flex: 1;
+        transition: border-color 0.2s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .s2-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        border-radius: 3px 0 0 3px;
+      }
+
+      .s2-item.bad::before {
+        background: rgba(239, 68, 68, 0.6);
+      }
+
+      .s2-item.good::before {
+        background: rgba(16, 185, 129, 0.6);
+      }
+
+      .s2-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 16px;
+      }
+
+      .s2-icon.bad {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+      }
+
+      .s2-icon.good {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+      }
+
+      .s2-text {
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--text2);
+      }
+
+      .s2-text strong {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 2px;
+      }
+
+      .s2-divider {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        position: relative;
+      }
+
+      .s2-divider::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 1px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          var(--border) 20%,
+          var(--border) 80%,
+          transparent
+        );
+      }
+
+      .s2-divider-badge {
+        position: relative;
+        z-index: 1;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+
+      /* ===== SHARED SLIDE HEADER ===== */
+      .slide-header {
+        margin-bottom: 28px;
+        flex-shrink: 0;
+      }
+
+      .slide-tag {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+
+      .slide-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        line-height: 1.1;
+      }
+
+      /* ===== SLIDE 3 - ARCHITECTURE ===== */
+      #s3 {
+        background: var(--bg);
+        padding: 60px 80px;
+      }
+
+      .arch-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        flex: 1;
+      }
+
+      .arch-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .arch-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+      }
+
+      .arch-card.frontend::before {
+        background: linear-gradient(90deg, var(--accent), transparent);
+      }
+
+      .arch-card.backend::before {
+        background: linear-gradient(90deg, var(--accent2), transparent);
+      }
+
+      .arch-card.design::before {
+        background: linear-gradient(90deg, var(--accent3), transparent);
+      }
+
+      .arch-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .arch-label.c-cyan {
+        color: var(--accent);
+      }
+
+      .arch-label.c-purple {
+        color: var(--accent2);
+      }
+
+      .arch-label.c-green {
+        color: var(--accent3);
+      }
+
+      .arch-card-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+
+      .tech-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        font-size: 12px;
+        padding: 5px 12px;
+        border-radius: 6px;
+        margin: 4px 4px 4px 0;
+      }
+
+      .tech-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+      }
+
+      .arch-card.full-width {
+        grid-column: 1/-1;
+        padding: 24px 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .arch-principles-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 16px;
+        width: 100%;
+        margin-top: 4px;
+      }
+
+      .arch-principle-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+        cursor: pointer;
+      }
+
+      .arch-principle-card:hover {
+        background: rgba(0, 212, 255, 0.03);
+        border-color: var(--accent);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.12);
+      }
+
+      .arch-principle-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        margin-bottom: 2px;
+        transition: transform 0.3s;
+      }
+
+      .arch-principle-card:hover .arch-principle-icon {
+        transform: scale(1.15) rotate(5deg);
+      }
+
+      .arch-principle-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .arch-principle-desc {
+        font-size: 11px;
+        color: var(--text3);
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      /* ===== SLIDE 4 - USE CASE ===== */
+      #s4 {
+        background: var(--bg);
+        padding: 20px 45px 32px 45px;
+      }
+
+      .s4-header {
+        margin-bottom: 12px;
+      }
+
+      .uc-container {
+        flex: 1;
+        position: relative;
+        overflow: visible;
+        /* Cho phép hiển thị sắc nét */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+      }
+
+      .uc-svg-wrap {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ERD card styles for slide preview */
+      .erd-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        font-size: 11px;
+      }
+
+      .erd-card-head {
+        padding: 5px 8px;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.3px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .erd-field {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2px 8px;
+        color: #cbd5e1;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 10.5px;
+        gap: 4px;
+        white-space: nowrap;
+      }
+
+      .erd-field:last-child {
+        border-bottom: none;
+      }
+
+      .erd-field span {
+        color: #475569;
+        font-size: 9.5px;
+        flex-shrink: 0;
+      }
+
+      .erd-field.pk {
+        background: rgba(0, 212, 255, 0.07);
+        color: #e2e8f0;
+        font-weight: 600;
+      }
+
+      .erd-field.pk span {
+        color: #00d4ff;
+      }
+
+      .erd-field.fk {
+        background: rgba(245, 158, 11, 0.05);
+      }
+
+      .erd-field.fk span {
+        color: #d97706;
+      }
+
+      /* ===== SLIDE 5 - DATABASE ===== */
+      #s5 {
+        background: var(--bg);
+        padding: 40px 60px;
+      }
+
+      #erd-container {
+        flex: 1;
+        overflow: auto;
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+      }
+
+      #erd-container::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+      }
+
+      #erd-container::-webkit-scrollbar-track {
+        background: var(--surface2);
+        border-radius: 4px;
+      }
+
+      #erd-container::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+      }
+
+      .mermaid-wrap {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        overflow: auto;
+        padding: 16px;
+      }
+
+      /* ERD fullscreen toolbar */
+      #erd-toolbar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 6px;
+        z-index: 10;
+      }
+
+      .erd-btn {
+        background: rgba(10, 14, 26, 0.85);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        padding: 5px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: 0.2s;
+        backdrop-filter: blur(8px);
+      }
+
+      .erd-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* ERD fullscreen modal */
+      #erd-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: var(--bg);
+        flex-direction: column;
+      }
+
+      #erd-modal.open {
+        display: flex;
+      }
+
+      #erd-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 28px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      #erd-modal-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #erd-modal-title span {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      #erd-modal-close {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 6px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.2s;
+      }
+
+      #erd-modal-close:hover {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: #ef4444;
+      }
+
+      #erd-modal-body {
+        flex: 1;
+        overflow: auto;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      #erd-modal-body::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+      }
+
+      #erd-modal-body::-webkit-scrollbar-track {
+        background: var(--surface);
+        border-radius: 4px;
+      }
+
+      #erd-modal-body::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+      }
+
+      /* Zoom controls in modal */
+      #erd-zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .zoom-btn {
+        background: rgba(10, 14, 26, 0.85);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        line-height: 1;
+      }
+
+      .zoom-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      #zoom-level-label {
+        font-size: 12px;
+        color: var(--text3);
+        min-width: 38px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Custom Filter and Card styles for dynamic ERD modal */
+      .filter-btn {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: inherit;
+        transition: 0.2s;
+        user-select: none;
+      }
+
+      .filter-btn:hover {
+        border-color: var(--accent);
+        color: var(--text);
+        background: rgba(0, 212, 255, 0.05);
+      }
+
+      .filter-btn.active {
+        background: rgba(0, 212, 255, 0.15);
+        border-color: var(--accent);
+        color: var(--accent);
+        font-weight: 600;
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+      }
+
+      .erd-workspace-card {
+        position: absolute;
+        width: 250px;
+        background: #111827;
+        border: 1px solid #1e2d45;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 11px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+      }
+
+      .erd-workspace-card:hover {
+        border-color: var(--accent);
+        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.25);
+        transform: translateY(-2px);
+        z-index: 100 !important;
+      }
+
+      .erd-workspace-card.dimmed {
+        opacity: 0.25;
+        filter: grayscale(40%) blur(0.5px);
+        transform: scale(0.97);
+      }
+
+      .erd-workspace-card.highlighted {
+        border-color: #ec4899 !important;
+        box-shadow: 0 4px 25px rgba(236, 72, 153, 0.4) !important;
+        transform: scale(1.03) translateY(-4px);
+        z-index: 100 !important;
+      }
+
+      .erd-workspace-card.related-highlight {
+        border-color: #00d4ff !important;
+        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3) !important;
+        transform: scale(1.01);
+        z-index: 90 !important;
+      }
+
+      .erd-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        color: #cbd5e1;
+        transition: background 0.15s;
+        cursor: pointer;
+      }
+
+      .erd-card-row:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+      }
+
+      .erd-card-row.pk {
+        background: rgba(0, 212, 255, 0.05);
+        font-weight: 600;
+      }
+
+      .erd-card-row.pk span {
+        color: #00d4ff;
+        font-weight: normal;
+      }
+
+      .erd-card-row.fk {
+        background: rgba(245, 158, 11, 0.03);
+      }
+
+      .erd-card-row.fk span {
+        color: #f59e0b;
+      }
+
+      .erd-card-row span {
+        color: #475569;
+        font-size: 9.5px;
+      }
+
+      .relation-path {
+        fill: none;
+        stroke-width: 2px;
+        opacity: 0.65;
+        transition: all 0.2s;
+      }
+
+      .relation-path.highlighted {
+        stroke-width: 4px;
+        opacity: 1;
+        filter: drop-shadow(0 0 6px currentColor);
+        z-index: 50;
+      }
+
+      .relation-path.direct-hover {
+        stroke-width: 5px;
+        opacity: 1;
+        filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.9));
+        z-index: 60;
+      }
+
+      .relation-path.dimmed {
+        opacity: 0.08;
+      }
+
+      /* ===== SLIDE 6 - SPRINT BACKLOG ===== */
+      /* ===== SLIDE 6 - SPRINT BACKLOG ===== */
+      #s6 {
+        background: var(--bg);
+        padding: 40px 70px;
+      }
+
+      .sprint-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+      }
+
+      .sprint-tab-btn {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        padding: 8px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        transition: 0.25s;
+        user-select: none;
+      }
+
+      .sprint-tab-btn:hover {
+        border-color: var(--accent);
+        color: var(--text);
+        background: rgba(0, 212, 255, 0.05);
+      }
+
+      .sprint-tab-btn.active {
+        background: rgba(0, 212, 255, 0.15);
+        border-color: var(--accent);
+        color: var(--accent);
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
+      }
+
+      .sprint-layout {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 24px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .sprint-image-container {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        cursor: zoom-in;
+        transition: all 0.3s;
+        height: 100%;
+        min-height: 320px;
+      }
+
+      .sprint-image-container:hover {
+        border-color: var(--accent);
+        box-shadow: 0 8px 30px rgba(0, 212, 255, 0.15);
+      }
+
+      .sprint-image-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .sprint-image-container:hover img {
+        transform: scale(1.02);
+      }
+
+      .sprint-details-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+      }
+
+      .sprint-badge-sp {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        color: var(--accent3);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 6px;
+      }
+
+      /* ===== SLIDE 7 - SUMMARY ===== */
+      #s7 {
+        background: var(--bg);
+        padding: 60px 80px;
+      }
+
+      .sum-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        flex: 1;
+      }
+
+      .sum-col-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+
+      .sum-col-label.done {
+        color: var(--accent3);
+      }
+
+      .sum-col-label.next {
+        color: var(--accent);
+      }
+
+      .sum-item {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        margin-bottom: 18px;
+      }
+
+      .sum-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 14px;
+      }
+
+      .sum-icon.done {
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--accent3);
+      }
+
+      .sum-icon.next {
+        background: rgba(0, 212, 255, 0.08);
+        color: var(--accent);
+      }
+
+      .sum-text {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text2);
+      }
+
+      .sum-text strong {
+        color: var(--text);
+        display: block;
+        margin-bottom: 2px;
+        font-size: 14px;
+      }
+
+      /* ===== SLIDE 8 - THANK YOU ===== */
+      #s8 {
+        background: var(--bg);
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Live Demo button animations */
+      @keyframes shimmer {
+        0% {
+          background-position: -200% center;
+        }
+        100% {
+          background-position: 200% center;
+        }
+      }
+
+      @keyframes glow-ring {
+        0%,
+        100% {
+          box-shadow:
+            0 0 0 0 rgba(0, 212, 255, 0.5),
+            0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        50% {
+          box-shadow:
+            0 0 0 8px rgba(0, 212, 255, 0),
+            0 0 35px rgba(0, 212, 255, 0.4);
+        }
+      }
+
+      @keyframes float-up {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-4px);
+        }
+      }
+
+      .s8-live-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(
+          270deg,
+          rgba(0, 212, 255, 0.15),
+          rgba(124, 58, 237, 0.15),
+          rgba(0, 212, 255, 0.15)
+        );
+        background-size: 300% 100%;
+        border: 1px solid rgba(0, 212, 255, 0.4);
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 600;
+        font-family: inherit;
+        padding: 12px 28px;
+        border-radius: 50px;
+        margin-bottom: 40px;
+        cursor: pointer;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+        animation:
+          shimmer 3s linear infinite,
+          glow-ring 2.5s ease-in-out infinite,
+          float-up 3s ease-in-out infinite;
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .s8-live-btn::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.08) 50%,
+          transparent 100%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 2s linear infinite;
+        border-radius: inherit;
+      }
+
+      .s8-live-btn:hover {
+        background: linear-gradient(
+          270deg,
+          rgba(0, 212, 255, 0.3),
+          rgba(124, 58, 237, 0.25),
+          rgba(0, 212, 255, 0.3)
+        );
+        background-size: 300% 100%;
+        border-color: rgba(0, 212, 255, 0.8);
+        color: #fff;
+        transform: translateY(-3px) scale(1.04);
+        box-shadow:
+          0 0 30px rgba(0, 212, 255, 0.5),
+          0 8px 24px rgba(0, 212, 255, 0.25);
+        text-shadow: 0 0 12px rgba(0, 212, 255, 0.8);
+      }
+
+      .s8-live-btn:active {
+        transform: scale(0.97);
+      }
+
+      #s8::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse 70% 50% at 50% 60%,
+          rgba(0, 212, 255, 0.05) 0%,
+          transparent 60%
+        );
+      }
+
+      .s8-content {
+        position: relative;
+        text-align: center;
+        z-index: 2;
+      }
+
+      .s8-demo-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(0, 212, 255, 0.08);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        color: var(--accent);
+        font-size: 14px;
+        padding: 10px 24px;
+        border-radius: 50px;
+        margin-bottom: 40px;
+      }
+
+      .s8-live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent3);
+        animation: pulse 1.5s infinite;
+      }
+
+      .s8-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 64px;
+        font-weight: 700;
+        letter-spacing: -2px;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, #fff, var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .s8-sub {
+        font-size: 17px;
+        color: var(--text2);
+        font-weight: 300;
+        line-height: 1.7;
+        max-width: 520px;
+        margin: 0 auto 48px;
+      }
+
+      .s8-team {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .s8-chip {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        font-size: 12px;
+        padding: 8px 16px;
+        border-radius: 8px;
+      }
+
+      /* Slide transitions */
+      .slide {
+        animation: fadeIn 0.4s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="presentation">
+      <!-- SLIDE 1 -->
+      <div class="slide active" id="s1">
+        <div class="s1-grid"></div>
+        <div class="s1-glow"></div>
+        <div class="s1-corner tl"></div>
+        <div class="s1-corner br"></div>
+        <div class="s1-content">
+          <div class="s1-badge">Hệ thống thông minh tích hợp AI</div>
+          <div class="s1-title">SmartHospital</div>
+          <div class="s1-sub">
+            Đặt lịch khám bệnh thông minh · Powered by AI
+          </div>
+          <div class="s1-tags">
+            <span class="s1-tag">React 19 + TypeScript</span>
+            <span class="s1-tag">NestJS + PostgreSQL</span>
+            <span class="s1-tag">Gemini &amp; OpenAI API</span>
+            <span class="s1-tag">RAG Assistant</span>
+            <span class="s1-tag">PayOS</span>
+          </div>
+
+          <!-- Giảng viên hướng dẫn & Sinh viên thực hiện -->
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              gap: 32px;
+              margin-top: 40px;
+              border-top: 1px solid rgba(255, 255, 255, 0.06);
+              padding-top: 32px;
+              text-align: left;
+              max-width: 820px;
+              margin-left: auto;
+              margin-right: auto;
+            "
+          >
+            <!-- Cột trái: Mentor -->
+            <div
+              style="
+                flex: 1;
+                background: rgba(0, 212, 255, 0.02);
+                border: 1px solid rgba(0, 212, 255, 0.08);
+                border-radius: 12px;
+                padding: 18px 22px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 8px;
+              "
+            >
+              <span
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--accent);
+                  text-transform: uppercase;
+                  letter-spacing: 2px;
+                  display: block;
+                  opacity: 0.8;
+                "
+                >👨‍🏫 Giảng viên hướng dẫn</span
+              >
+              <div
+                style="
+                  font-family: &quot;Space Grotesk&quot;, sans-serif;
+                  font-size: 16px;
+                  font-weight: 700;
+                  color: #ffffff;
+                "
+              >
+                ThS. Lưu Văn Hiền
+              </div>
+              <span
+                style="font-size: 11px; color: var(--text3); line-height: 1.4"
+                >Khoa Công nghệ thông tin</span
+              >
+            </div>
+
+            <!-- Cột phải: Thành viên nhóm -->
+            <div
+              style="
+                flex: 1.4;
+                background: rgba(255, 255, 255, 0.01);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 18px 22px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+              "
+            >
+              <span
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: var(--text3);
+                  text-transform: uppercase;
+                  letter-spacing: 2px;
+                  display: block;
+                  opacity: 0.8;
+                "
+                >👥 Nhóm sinh viên thực hiện</span
+              >
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr auto;
+                  gap: 6px 24px;
+                  font-size: 12.5px;
+                "
+              >
+                <div style="font-weight: 600; color: #e2e8f0">Ngô Minh Đạt</div>
+                <div
+                  style="
+                    color: var(--text3);
+                    font-family: monospace;
+                    font-size: 12px;
+                  "
+                >
+                  28211139224
+                </div>
+
+                <div style="font-weight: 600; color: #e2e8f0">
+                  Phạm Nguyên Khang
+                </div>
+                <div
+                  style="
+                    color: var(--text3);
+                    font-family: monospace;
+                    font-size: 12px;
+                  "
+                >
+                  28211100017
+                </div>
+
+                <div style="font-weight: 600; color: #e2e8f0">
+                  Nguyễn Đức Khải
+                </div>
+                <div
+                  style="
+                    color: var(--text3);
+                    font-family: monospace;
+                    font-size: 12px;
+                  "
+                >
+                  28211151549
+                </div>
+
+                <div style="font-weight: 600; color: #e2e8f0">Văn Phú Tín</div>
+                <div
+                  style="
+                    color: var(--text3);
+                    font-family: monospace;
+                    font-size: 12px;
+                  "
+                >
+                  28211106758
+                </div>
+
+                <div style="font-weight: 600; color: #e2e8f0">Hồ Trung Ý</div>
+                <div
+                  style="
+                    color: var(--text3);
+                    font-family: monospace;
+                    font-size: 12px;
+                  "
+                >
+                  28210202143
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 2 -->
+      <div class="slide" id="s2">
+        <div class="slide-header">
+          <div class="slide-tag">02 · Vấn đề & Giải pháp</div>
+          <div class="slide-title">
+            SmartHospital giải quyết<br />những vấn đề thực tế
+          </div>
+        </div>
+        <div class="s2-grid" style="flex: 1">
+          <!-- CỘT TRÁI: Vấn đề -->
+          <div class="s2-col">
+            <div class="s2-col-header bad">⚠ Vấn đề hiện tại</div>
+            <div class="s2-item bad">
+              <div class="s2-icon bad">⏳</div>
+              <div class="s2-text">
+                <strong>Đặt lịch truyền thống chậm & dễ nhầm</strong>
+                Gọi điện, chờ đợi, dễ nhầm lịch và thiếu minh bạch thông tin.
+              </div>
+            </div>
+            <div class="s2-item bad">
+              <div class="s2-icon bad">🔍</div>
+              <div class="s2-text">
+                <strong>Không có thông tin minh bạch về bác sĩ</strong>
+                Thiếu hồ sơ chuyên môn, lịch sử khám và đánh giá bác sĩ.
+              </div>
+            </div>
+            <div class="s2-item bad">
+              <div class="s2-icon bad">🤷</div>
+              <div class="s2-text">
+                <strong>Bệnh nhân không biết khám chuyên khoa nào</strong>
+                Triệu chứng không rõ ràng, không có hỗ trợ định hướng khám bệnh.
+              </div>
+            </div>
+            <div class="s2-item bad">
+              <div class="s2-icon bad">📋</div>
+              <div class="s2-text">
+                <strong>Bác sĩ tốn thời gian tra cứu bệnh án</strong>
+                Hồ sơ thủ công, tra cứu chậm, giảm hiệu suất khám chữa bệnh.
+              </div>
+            </div>
+          </div>
+
+          <!-- DIVIDER -->
+          <div class="s2-divider">
+            <div class="s2-divider-badge">→</div>
+          </div>
+
+          <!-- CỘT PHẢI: Giải pháp -->
+          <div class="s2-col">
+            <div class="s2-col-header good">✓ Giải pháp SmartHospital</div>
+            <div class="s2-item good">
+              <div class="s2-icon good">🌐</div>
+              <div class="s2-text">
+                <strong>Đặt lịch & thanh toán online mọi lúc mọi nơi</strong>
+                Nền tảng web tìm bác sĩ, đặt lịch và thanh toán nhanh chóng.
+              </div>
+            </div>
+            <div class="s2-item good">
+              <div class="s2-icon good">🤖</div>
+              <div class="s2-text">
+                <strong>AI gợi ý chuyên khoa theo triệu chứng</strong>
+                Phân tích mô tả triệu chứng, gợi ý chuyên khoa chính xác và
+                nhanh.
+              </div>
+            </div>
+            <div class="s2-item good">
+              <div class="s2-icon good">📅</div>
+              <div class="s2-text">
+                <strong>AI tối ưu khung giờ khám cá nhân hóa</strong>
+                Học theo lịch sử hành vi bệnh nhân, tự động xếp giờ phù hợp
+                nhất.
+              </div>
+            </div>
+            <div class="s2-item good">
+              <div class="s2-icon good">💬</div>
+              <div class="s2-text">
+                <strong>Trợ lý RAG hỗ trợ bác sĩ tra cứu bệnh án</strong>
+                Hỏi đáp tự nhiên với AI, tìm thông tin bệnh án trong tích tắc.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 3 -->
+      <div class="slide" id="s3">
+        <div class="slide-header">
+          <div class="slide-tag">03 · Kiến trúc hệ thống</div>
+          <div class="slide-title">
+            Công nghệ cốt lõi &amp; Nguyên lý thiết kế
+          </div>
+        </div>
+        <div class="arch-grid">
+          <!-- Cột trái: Frontend -->
+          <div
+            class="arch-card frontend"
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <div class="arch-label c-cyan">Frontend</div>
+              <div class="arch-card-title" style="margin-bottom: 12px">
+                Client Layer
+              </div>
+              <p
+                style="
+                  font-size: 12px;
+                  color: var(--text3);
+                  margin: 0 0 20px 0;
+                  line-height: 1.5;
+                "
+              >
+                Giao diện người dùng hiện đại, tốc độ cao, hỗ trợ đa thiết bị và
+                tích hợp trí tuệ nhân tạo trực tiếp.
+              </p>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(97, 218, 251, 0.25);
+                  background: rgba(97, 218, 251, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >⚛️</span
+                >React 19</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(49, 120, 198, 0.25);
+                  background: rgba(49, 120, 198, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 10px;
+                    font-weight: 900;
+                    background: #3178c6;
+                    color: #fff;
+                    border-radius: 3px;
+                    line-height: 1;
+                    font-family: sans-serif;
+                    transform: scale(0.85);
+                    margin-right: 4px;
+                  "
+                  >TS</span
+                >TypeScript</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(100, 108, 255, 0.25);
+                  background: rgba(100, 108, 255, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >⚡</span
+                >Vite</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(56, 189, 248, 0.25);
+                  background: rgba(56, 189, 248, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >🎨</span
+                >Tailwind CSS</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(0, 212, 255, 0.25);
+                  background: rgba(0, 212, 255, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >✨</span
+                >Gemini API</span
+              >
+            </div>
+          </div>
+
+          <!-- Cột phải: Backend -->
+          <div
+            class="arch-card backend"
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <div class="arch-label c-purple">Backend</div>
+              <div class="arch-card-title" style="margin-bottom: 12px">
+                Server Layer
+              </div>
+              <p
+                style="
+                  font-size: 12px;
+                  color: var(--text3);
+                  margin: 0 0 20px 0;
+                  line-height: 1.5;
+                "
+              >
+                Hệ thống API mạnh mẽ, kiến trúc Module hóa chặt chẽ, tối ưu truy
+                vấn dữ liệu và tích hợp cổng thanh toán.
+              </p>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(234, 40, 69, 0.25);
+                  background: rgba(234, 40, 69, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >🛡️</span
+                >NestJS</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(51, 103, 145, 0.25);
+                  background: rgba(51, 103, 145, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >🐘</span
+                >PostgreSQL</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(147, 51, 234, 0.25);
+                  background: rgba(147, 51, 234, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >🔄</span
+                >TypeORM</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(16, 185, 129, 0.25);
+                  background: rgba(16, 185, 129, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >🤖</span
+                >OpenAI API</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(255, 153, 0, 0.25);
+                  background: rgba(255, 153, 0, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >☁️</span
+                >AWS S3</span
+              >
+              <span
+                class="tech-pill"
+                style="
+                  border-color: rgba(0, 212, 255, 0.25);
+                  background: rgba(0, 212, 255, 0.05);
+                "
+                ><span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 12px;
+                    margin-right: 4px;
+                  "
+                  >💳</span
+                >PayOS</span
+              >
+            </div>
+          </div>
+
+          <!-- Hàng dưới: Thiết kế hệ thống dạng 5 thẻ đứng -->
+          <div class="arch-card design full-width">
+            <div class="arch-label c-green" style="margin-bottom: 2px">
+              Nguyên lý thiết kế &amp; Đặc trưng hệ thống
+            </div>
+
+            <div class="arch-principles-grid">
+              <!-- Principle 1 -->
+              <div class="arch-principle-card">
+                <div
+                  class="arch-principle-icon"
+                  style="background: rgba(59, 130, 246, 0.1); color: #3b82f6"
+                >
+                  🔗
+                </div>
+                <div class="arch-principle-title">RESTful API</div>
+                <p class="arch-principle-desc">
+                  Chuẩn giao tiếp dữ liệu chuẩn hóa, an toàn, độc lập và tối ưu
+                  hóa băng thông.
+                </p>
+              </div>
+
+              <!-- Principle 2 -->
+              <div class="arch-principle-card">
+                <div
+                  class="arch-principle-icon"
+                  style="background: rgba(168, 85, 247, 0.1); color: #a855f7"
+                >
+                  🖥️
+                </div>
+                <div class="arch-principle-title">Client-Server</div>
+                <p class="arch-principle-desc">
+                  Tách biệt tầng giao diện và nghiệp vụ, tăng khả năng mở rộng
+                  hệ thống linh hoạt.
+                </p>
+              </div>
+
+              <!-- Principle 3 -->
+              <div class="arch-principle-card">
+                <div
+                  class="arch-principle-icon"
+                  style="background: rgba(236, 72, 153, 0.1); color: #ec4899"
+                >
+                  🛡️
+                </div>
+                <div class="arch-principle-title">RBAC Security</div>
+                <p class="arch-principle-desc">
+                  Phân quyền dựa trên vai trò nghiêm ngặt (Admin, Doctor,
+                  Patient) bảo mật dữ liệu.
+                </p>
+              </div>
+
+              <!-- Principle 4 -->
+              <div class="arch-principle-card">
+                <div
+                  class="arch-principle-icon"
+                  style="background: rgba(234, 179, 8, 0.1); color: #eab308"
+                >
+                  🤖
+                </div>
+                <div class="arch-principle-title">AI 3-tier</div>
+                <p class="arch-principle-desc">
+                  Kiến trúc AI 3 tầng từ phân tích bệnh, tối ưu giờ khám đến hỗ
+                  trợ bác sĩ.
+                </p>
+              </div>
+
+              <!-- Principle 5 -->
+              <div class="arch-principle-card">
+                <div
+                  class="arch-principle-icon"
+                  style="background: rgba(16, 185, 129, 0.1); color: #10b981"
+                >
+                  🧠
+                </div>
+                <div class="arch-principle-title">pgvector RAG</div>
+                <p class="arch-principle-desc">
+                  Truy vấn ngữ nghĩa lịch sử bệnh án với Vector Database cho kết
+                  quả chính xác.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4 - USE CASE SVG -->
+      <div class="slide" id="s4">
+        <div class="s4-header">
+          <div class="slide-tag">04 · Usecase Diagram</div>
+          <div class="slide-title" style="font-size: 32px">
+            Usecase Tổng Quát Hệ Thống
+          </div>
+        </div>
+        <div
+          class="uc-container"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            position: relative;
+          "
+        >
+          <button
+            onclick="openUsecaseFullscreen()"
+            style="
+              position: absolute;
+              top: 16px;
+              right: 16px;
+              background: rgba(0, 212, 255, 0.2);
+              border: 1px solid rgba(0, 212, 255, 0.5);
+              color: #00d4ff;
+              padding: 8px 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 12px;
+              font-family: inherit;
+              z-index: 10;
+              transition: all 0.2s;
+            "
+            onmouseover="
+              this.style.background = 'rgba(0, 212, 255, 0.3)';
+              this.style.borderColor = 'rgba(0, 212, 255, 0.8)';
+            "
+            onmouseout="
+              this.style.background = 'rgba(0, 212, 255, 0.2)';
+              this.style.borderColor = 'rgba(0, 212, 255, 0.5)';
+            "
+          >
+            ⛶ Fullscreen
+          </button>
+          <img
+            src="https://smart-hospital-avatar-storage.s3.ap-southeast-1.amazonaws.com/other-img/usecase.jpg"
+            alt="Usecase Diagram"
+            style="max-width: 100%; max-height: 90%; object-fit: contain"
+          />
+        </div>
+      </div>
+
+      <!-- SLIDE 5 - DATABASE ERD -->
+      <div class="slide" id="s5">
+        <div
+          style="
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+          "
+        >
+          <div>
+            <div class="slide-tag">05 · Cấu trúc Database</div>
+            <div class="slide-title" style="font-size: 28px">
+              Entity Relationship Diagram
+            </div>
+          </div>
+          <button
+            class="erd-btn"
+            onclick="openERDModal()"
+            style="flex-shrink: 0"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"
+              />
+            </svg>
+            Xem sơ đồ đầy đủ
+          </button>
+        </div>
+        <!-- Inline preview: các bảng chính dạng card -->
+        <div
+          id="erd-container"
+          style="flex: 1; overflow: auto; position: relative"
+        >
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(5, 1fr);
+              gap: 10px;
+              padding: 4px 2px;
+              min-width: 900px;
+            "
+          >
+            <!-- users -->
+            <div
+              class="erd-card"
+              style="grid-column: 1; grid-row: 1/3; border-color: #00d4ff"
+            >
+              <div
+                class="erd-card-head"
+                style="background: rgba(0, 212, 255, 0.15); color: #00d4ff"
+              >
+                👤 users
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field">full_name <span>varchar</span></div>
+              <div class="erd-field">email <span>varchar</span></div>
+              <div class="erd-field">phone <span>varchar</span></div>
+              <div class="erd-field">role <span>varchar</span></div>
+              <div class="erd-field">is_locked <span>boolean</span></div>
+              <div class="erd-field fk">department_id <span>uuid FK</span></div>
+              <div class="erd-field">experience_years <span>integer</span></div>
+              <div class="erd-field">
+                preferred_time_pattern <span>jsonb</span>
+              </div>
+              <div class="erd-field">created_at <span>timestamp</span></div>
+            </div>
+
+            <!-- departments -->
+            <div class="erd-card" style="border-color: #7c3aed">
+              <div
+                class="erd-card-head"
+                style="background: rgba(124, 58, 237, 0.15); color: #a78bfa"
+              >
+                🏥 departments
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field">name <span>varchar</span></div>
+              <div class="erd-field">description <span>text</span></div>
+            </div>
+
+            <!-- appointments -->
+            <div class="erd-card" style="border-color: #10b981">
+              <div
+                class="erd-card-head"
+                style="background: rgba(16, 185, 129, 0.15); color: #10b981"
+              >
+                📅 appointments
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field fk">user_id <span>uuid FK</span></div>
+              <div class="erd-field fk">doctor_id <span>uuid FK</span></div>
+              <div class="erd-field fk">slot_id <span>uuid FK</span></div>
+              <div class="erd-field">symptoms <span>text</span></div>
+              <div class="erd-field">status <span>varchar</span></div>
+              <div class="erd-field">deposit_amount <span>numeric</span></div>
+              <div class="erd-field fk">cancelled_by <span>uuid FK</span></div>
+              <div class="erd-field">created_at <span>timestamp</span></div>
+            </div>
+
+            <!-- medical_records -->
+            <div class="erd-card" style="border-color: #f59e0b">
+              <div
+                class="erd-card-head"
+                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b"
+              >
+                🩺 medical_records
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field fk">patient_id <span>uuid FK</span></div>
+              <div class="erd-field fk">doctor_id <span>uuid FK</span></div>
+              <div class="erd-field fk">
+                appointment_id <span>uuid FK</span>
+              </div>
+              <div class="erd-field">symptoms <span>text</span></div>
+              <div class="erd-field">diagnosis <span>text</span></div>
+              <div class="erd-field">treatment <span>text</span></div>
+              <div class="erd-field">notes <span>text</span></div>
+              <div class="erd-field">created_at <span>timestamptz</span></div>
+            </div>
+
+            <!-- payments -->
+            <div class="erd-card" style="border-color: #06b6d4">
+              <div
+                class="erd-card-head"
+                style="background: rgba(6, 182, 212, 0.15); color: #06b6d4"
+              >
+                💳 payments
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field fk">
+                appointment_id <span>uuid FK</span>
+              </div>
+              <div class="erd-field">amount <span>numeric</span></div>
+              <div class="erd-field">payment_type <span>varchar</span></div>
+              <div class="erd-field">payment_method <span>varchar</span></div>
+              <div class="erd-field">status <span>varchar</span></div>
+              <div class="erd-field">payos_order_code <span>bigint</span></div>
+            </div>
+
+            <!-- appointment_slots -->
+            <div class="erd-card" style="border-color: #64748b">
+              <div
+                class="erd-card-head"
+                style="background: rgba(100, 116, 139, 0.15); color: #94a3b8"
+              >
+                🕐 appointment_slots
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field fk">doctor_id <span>uuid FK</span></div>
+              <div class="erd-field">slot_time <span>timestamp</span></div>
+              <div class="erd-field">status <span>slot_status</span></div>
+            </div>
+
+            <!-- doctor_schedules -->
+            <div class="erd-card" style="border-color: #64748b">
+              <div
+                class="erd-card-head"
+                style="background: rgba(100, 116, 139, 0.15); color: #94a3b8"
+              >
+                📆 doctor_schedules
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field fk">doctor_id <span>uuid FK</span></div>
+              <div class="erd-field">work_day <span>date</span></div>
+              <div class="erd-field">start_time <span>time</span></div>
+              <div class="erd-field">end_time <span>time</span></div>
+            </div>
+
+            <!-- doctor_leave_requests -->
+            <div class="erd-card" style="border-color: #64748b">
+              <div
+                class="erd-card-head"
+                style="background: rgba(100, 116, 139, 0.15); color: #94a3b8"
+              >
+                🏖 doctor_leave_requests
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field fk">doctor_id <span>uuid FK</span></div>
+              <div class="erd-field">start_date <span>date</span></div>
+              <div class="erd-field">end_date <span>date</span></div>
+              <div class="erd-field">status <span>varchar</span></div>
+              <div class="erd-field fk">reviewed_by <span>uuid FK</span></div>
+            </div>
+
+            <!-- medical_record_embeddings -->
+            <div class="erd-card" style="border-color: #8b5cf6">
+              <div
+                class="erd-card-head"
+                style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6"
+              >
+                🧠 record_embeddings
+              </div>
+              <div class="erd-field pk">record_id <span>uuid PK,FK</span></div>
+              <div class="erd-field fk">doctor_id <span>uuid FK</span></div>
+              <div class="erd-field fk">patient_id <span>uuid FK</span></div>
+              <div class="erd-field">content_anonymized <span>text</span></div>
+              <div class="erd-field">embedding <span>vector</span></div>
+            </div>
+
+            <!-- doctor_chat_sessions + messages -->
+            <div class="erd-card" style="border-color: #ec4899">
+              <div
+                class="erd-card-head"
+                style="background: rgba(236, 72, 153, 0.15); color: #ec4899"
+              >
+                💬 chat_sessions
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field fk">doctor_id <span>uuid FK</span></div>
+              <div class="erd-field">title <span>varchar</span></div>
+              <div class="erd-field">created_at <span>timestamptz</span></div>
+              <div
+                class="erd-card-head"
+                style="
+                  background: rgba(236, 72, 153, 0.08);
+                  color: #f9a8d4;
+                  margin: 6px -1px 0;
+                  font-size: 10px;
+                "
+              >
+                💬 chat_messages
+              </div>
+              <div class="erd-field pk">id <span>uuid PK</span></div>
+              <div class="erd-field fk">session_id <span>uuid FK</span></div>
+              <div class="erd-field">role <span>varchar</span></div>
+              <div class="erd-field">content <span>text</span></div>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div
+            style="
+              display: flex;
+              gap: 20px;
+              padding: 8px 4px 2px;
+              flex-shrink: 0;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 11px;
+                color: #94a3b8;
+              "
+            >
+              <div
+                style="
+                  width: 10px;
+                  height: 10px;
+                  background: rgba(0, 212, 255, 0.25);
+                  border: 1px solid #00d4ff;
+                  border-radius: 2px;
+                "
+              ></div>
+              Primary Key
+            </div>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 11px;
+                color: #94a3b8;
+              "
+            >
+              <div
+                style="
+                  width: 10px;
+                  height: 10px;
+                  background: rgba(245, 158, 11, 0.2);
+                  border: 1px solid #f59e0b;
+                  border-radius: 2px;
+                "
+              ></div>
+              Foreign Key
+            </div>
+            <div style="font-size: 11px; color: #4a5568; margin-left: auto">
+              ← Nhấn "Xem sơ đồ đầy đủ" để xem ERD với quan hệ chi tiết
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ERD FULLSCREEN MODAL -->
+      <div id="erd-modal">
+        <div id="erd-modal-header">
+          <div id="erd-modal-title">
+            <span>05 · DATABASE</span>
+            Entity Relationship Diagram — SmartHospital
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div id="erd-zoom-controls">
+              <button class="zoom-btn" onclick="erdZoom(-0.15)" title="Thu nhỏ">
+                −
+              </button>
+              <span id="zoom-level-label">100%</span>
+              <button class="zoom-btn" onclick="erdZoom(0.15)" title="Phóng to">
+                +
+              </button>
+            </div>
+            <button id="erd-modal-close" onclick="closeERDModal()">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              Đóng
+            </button>
+          </div>
+        </div>
+        <div
+          id="erd-modal-body"
+          style="
+            padding: 0;
+            overflow: hidden;
+            background: #070a13;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 68px);
+          "
+        >
+          <!-- Toolbar lọc nhóm bảng -->
+          <div
+            id="erd-group-filters"
+            style="
+              display: flex;
+              gap: 8px;
+              padding: 12px 24px;
+              background: rgba(16, 24, 48, 0.4);
+              border-bottom: 1px solid var(--border);
+              flex-shrink: 0;
+              align-items: center;
+              justify-content: flex-start;
+              z-index: 10;
+            "
+          >
+            <span
+              style="
+                font-size: 12px;
+                color: var(--text2);
+                font-weight: 600;
+                margin-right: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              "
+              >Phân hệ:</span
+            >
+            <button class="filter-btn active" onclick="filterERDGroup('all')">
+              Tất cả các bảng
+            </button>
+            <button class="filter-btn" onclick="filterERDGroup('core')">
+              👤 Hệ thống &amp; Phân quyền
+            </button>
+            <button class="filter-btn" onclick="filterERDGroup('schedule')">
+              📅 Lịch làm việc &amp; Đặt khám
+            </button>
+            <button class="filter-btn" onclick="filterERDGroup('clinical')">
+              🩺 Bệnh án &amp; Giao dịch
+            </button>
+            <button class="filter-btn" onclick="filterERDGroup('ai')">
+              🧠 AI &amp; Trợ lý RAG
+            </button>
+            <span
+              style="
+                font-size: 11px;
+                color: var(--text3);
+                margin-left: auto;
+                font-style: italic;
+              "
+              >💡 Rê chuột vào bảng hoặc khoá ngoại để xem luồng quan hệ liên
+              quan</span
+            >
+          </div>
+
+          <div
+            id="erd-canvas-container"
+            style="
+              flex: 1;
+              overflow: auto;
+              position: relative;
+              width: 100%;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: #060913;
+            "
+          >
+            <div
+              id="erd-workspace"
+              style="
+                width: 1280px;
+                height: 920px;
+                position: relative;
+                background: radial-gradient(
+                  circle at 1px 1px,
+                  rgba(255, 255, 255, 0.03) 1.5px,
+                  transparent 0
+                );
+                background-size: 24px 24px;
+                transform-origin: center center;
+                transition: transform 0.25s cubic-bezier(0.1, 0.8, 0.2, 1);
+              "
+            >
+              <!-- Lớp SVG vẽ đường quan hệ -->
+              <svg
+                id="erd-connections-svg"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  pointer-events: none;
+                  z-index: 1;
+                "
+              >
+                <defs>
+                  <!-- Markers theo màu group -->
+                  <marker
+                    id="marker-arrow-core"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#00d4ff" />
+                  </marker>
+                  <marker
+                    id="marker-arrow-schedule"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#a78bfa" />
+                  </marker>
+                  <marker
+                    id="marker-arrow-clinical"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
+                  </marker>
+                  <marker
+                    id="marker-arrow-ai"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ec4899" />
+                  </marker>
+                  <!-- Marker hover (pink) -->
+                  <marker
+                    id="marker-arrow-hover"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="7"
+                    markerHeight="7"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ec4899" />
+                  </marker>
+                  <linearGradient
+                    id="grad-blue-purple"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="0%"
+                  >
+                    <stop offset="0%" stop-color="#00d4ff" />
+                    <stop offset="100%" stop-color="#7c3aed" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <!-- Lớp chứa các thẻ Card bảng -->
+              <div
+                id="erd-cards-container"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  z-index: 2;
+                "
+              >
+                <!-- Sẽ được vẽ tự động bằng Javascript -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 6 - SPRINT BACKLOG -->
+      <div class="slide" id="s6">
+        <div
+          class="slide-header"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+          "
+        >
+          <div>
+            <div class="slide-tag">06 · Sprint Backlog</div>
+            <div class="slide-title">Burndown Charts — 3 Sprints</div>
+          </div>
+          <!-- Sprint Tabs Switcher -->
+          <div class="sprint-tabs">
+            <button class="sprint-tab-btn active" onclick="switchSprint(1)">
+              Sprint 1
+            </button>
+            <button class="sprint-tab-btn" onclick="switchSprint(2)">
+              Sprint 2
+            </button>
+            <button class="sprint-tab-btn" onclick="switchSprint(3)">
+              Sprint 3
+            </button>
+          </div>
+        </div>
+
+        <div class="sprint-layout">
+          <!-- Cột trái: Ảnh Burndown Chart to rõ, click phóng to -->
+          <div class="sprint-image-container" onclick="openChartLightbox()">
+            <img
+              id="active-sprint-img"
+              src="https://smart-hospital-avatar-storage.s3.ap-southeast-1.amazonaws.com/other-img/sprint-1.png"
+              alt="Sprint Burndown Chart"
+            />
+            <div
+              style="
+                position: absolute;
+                bottom: 12px;
+                right: 12px;
+                background: rgba(10, 14, 26, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 10px;
+                color: var(--text3);
+                pointer-events: none;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+              "
+            >
+              🔍 Click để phóng to toàn màn hình
+            </div>
+          </div>
+
+          <!-- Cột phải: Thông tin chi tiết, kết quả của Sprint -->
+          <div class="sprint-details-card">
+            <div>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 12px;
+                "
+              >
+                <h3
+                  id="sprint-detail-title"
+                  style="
+                    font-family: &quot;Space Grotesk&quot;, sans-serif;
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: var(--text);
+                    margin: 0;
+                  "
+                >
+                  Sprint 1
+                </h3>
+                <span id="sprint-detail-sp" class="sprint-badge-sp">97 SP</span>
+              </div>
+              <div
+                id="sprint-detail-time"
+                style="
+                  font-size: 12px;
+                  color: var(--text3);
+                  margin-bottom: 20px;
+                  font-weight: 500;
+                "
+              >
+                📅 10/03 → 03/04
+              </div>
+
+              <div style="margin-bottom: 16px">
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: var(--accent);
+                    letter-spacing: 1px;
+                    margin-bottom: 8px;
+                  "
+                >
+                  🎯 Mục tiêu chính
+                </div>
+                <p
+                  id="sprint-detail-goal"
+                  style="
+                    font-size: 13px;
+                    color: var(--text2);
+                    line-height: 1.5;
+                    margin: 0;
+                  "
+                >
+                  Xây dựng nền tảng hệ thống cốt lõi (Core Foundation), cơ sở dữ
+                  liệu Entity &amp; phân quyền người dùng.
+                </p>
+              </div>
+
+              <div>
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: var(--accent3);
+                    letter-spacing: 1px;
+                    margin-bottom: 8px;
+                  "
+                >
+                  ✅ Kết quả hoàn thành
+                </div>
+                <ul
+                  id="sprint-detail-deliverables"
+                  style="
+                    font-size: 12.5px;
+                    color: var(--text2);
+                    line-height: 1.6;
+                    margin: 0;
+                    padding-left: 18px;
+                  "
+                >
+                  <li>
+                    Thiết lập Database PostgreSQL, Docker &amp; TypeORM Entity.
+                  </li>
+                  <li>
+                    Hoàn thành hệ thống Đăng nhập, Đăng ký, Quên mật khẩu &amp;
+                    phân quyền người dùng dựa trên Vai trò (RBAC).
+                  </li>
+                  <li>
+                    Xây dựng cấu trúc khung Layout Dashboard cho 3 nhóm người
+                    dùng: Bệnh nhân, Bác sĩ &amp; Admin.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div
+              style="
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+                padding-top: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 11px;
+                color: var(--text3);
+              "
+            >
+              <span>Loại biểu đồ: <strong>Burndown Chart</strong></span>
+              <span style="display: flex; align-items: center; gap: 10px">
+                <span style="display: flex; align-items: center; gap: 4px"
+                  ><span
+                    style="
+                      width: 10px;
+                      height: 2px;
+                      background: #3b82f6;
+                      display: inline-block;
+                    "
+                  ></span>
+                  Lý thuyết</span
+                >
+                <span style="display: flex; align-items: center; gap: 4px"
+                  ><span
+                    style="
+                      width: 10px;
+                      height: 2px;
+                      background: #ef4444;
+                      display: inline-block;
+                    "
+                  ></span>
+                  Thực tế</span
+                >
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SPRINT CHART LIGHTBOX MODAL -->
+      <div
+        id="chart-lightbox"
+        onclick="closeChartLightbox()"
+        style="
+          display: none;
+          position: fixed;
+          inset: 0;
+          background: rgba(6, 9, 18, 0.95);
+          z-index: 10000;
+          align-items: center;
+          justify-content: center;
+          padding: 40px;
+          cursor: zoom-out;
+        "
+      >
+        <button
+          style="
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+          "
+        >
+          &times;
+        </button>
+        <img
+          id="lightbox-img"
+          src=""
+          alt="Sprint Chart Zoomed"
+          style="
+            max-width: 92%;
+            max-height: 92%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+          "
+        />
+      </div>
+
+      <!-- SLIDE 7 - SUMMARY -->
+      <div class="slide" id="s7">
+        <div class="slide-header">
+          <div class="slide-tag">07 · Tổng kết</div>
+          <div class="slide-title">Đã thực hiện &amp; Hướng phát triển</div>
+        </div>
+        <div class="sum-grid">
+          <div>
+            <div class="sum-col-label done">✓ Đã thực hiện</div>
+            <div class="sum-item">
+              <div class="sum-icon done">📅</div>
+              <div class="sum-text">
+                <strong>Hệ thống đặt lịch toàn diện</strong>Thanh toán online,
+                nhắc lịch qua email tự động.
+              </div>
+            </div>
+            <div class="sum-item">
+              <div class="sum-icon done">🤖</div>
+              <div class="sum-text">
+                <strong>AI tích hợp 3 tầng</strong>Gợi ý chuyên khoa, tối ưu giờ
+                khám &amp; Trợ lý RAG.
+              </div>
+            </div>
+            <div class="sum-item">
+              <div class="sum-icon done">🖥</div>
+              <div class="sum-text">
+                <strong>3 Dashboard riêng biệt</strong>Bệnh nhân · Bác sĩ · Quản
+                trị viên.
+              </div>
+            </div>
+            <div class="sum-item">
+              <div class="sum-icon done">⚙</div>
+              <div class="sum-text">
+                <strong>Quản lý hệ thống đầy đủ</strong>Banner quảng cáo, cấu
+                hình, theo dõi chi phí AI.
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="sum-col-label next">→ Hướng phát triển</div>
+            <div class="sum-item">
+              <div class="sum-icon next">📱</div>
+              <div class="sum-text">
+                <strong>Hỗ trợ hủy lịch khám trong trường hợp ngoại lệ</strong
+                >Một số trường hợp đặc biệt bệnh nhân không thể đến khám bệnh có
+                minh chứng.
+              </div>
+            </div>
+            <div class="sum-item">
+              <div class="sum-icon next">🎥</div>
+              <div class="sum-text">
+                <strong>Video Call</strong>Tích hợp tư vấn sức khỏe trực tuyến.
+              </div>
+            </div>
+            <div class="sum-item">
+              <div class="sum-icon next">🏥</div>
+              <div class="sum-text">
+                <strong>Bảo hiểm Y tế</strong>Kết nối hệ thống BHYT quốc gia.
+              </div>
+            </div>
+            <div class="sum-item">
+              <div class="sum-icon next">☁</div>
+              <div class="sum-text">
+                <strong>Cloud &amp; Đa ngôn ngữ</strong>Triển khai AWS/GCP, hỗ
+                trợ i18n.
+              </div>
+            </div>
+
+            <div class="sum-item">
+              <div class="sum-icon next">🔐</div>
+              <div class="sum-text">
+                <strong>Bảo mật nâng cao</strong>Mã hóa E2E, blockchain cho hồ
+                sơ y tế.
+              </div>
+            </div>
+            <div class="sum-item">
+              <div class="sum-icon next">🌍</div>
+              <div class="sum-text">
+                <strong>Mở rộng khu vực</strong>Hỗ trợ nhiều bệnh viện, chuỗi y
+                tế lớn.
+              </div>
+            </div>
+            <div class="sum-item">
+              <div class="sum-icon next">⚡</div>
+              <div class="sum-text">
+                <strong>IoT &amp; Thiết bị Y tế</strong>Kết nối máy khám, theo
+                dõi sức khỏe từ xa.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 8 - THANK YOU -->
+      <div class="slide" id="s8">
+        <div class="s1-grid"></div>
+        <div class="s1-glow"></div>
+        <div class="s1-corner tl"></div>
+        <div class="s1-corner br"></div>
+        <div class="s8-content">
+          <a
+            class="s8-live-btn"
+            href="https://smart-hospital-kltn.netlify.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="s8-live-dot"></div>
+            🚀 Live Demo
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              style="opacity: 0.8"
+            >
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </a>
+          <div class="s8-title">Cảm ơn!</div>
+          <div class="s8-sub">
+            Cảm ơn quý thầy cô và các bạn<br />đã lắng nghe phần trình bày của
+            nhóm.
+          </div>
+          <div class="s8-team">
+            <span class="s8-chip">SmartHospital</span>
+            <span class="s8-chip">Nhóm Phát Triển</span>
+            <span class="s8-chip">AI · Web · Database</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- end #presentation -->
+
+    <!-- VERTICAL DOTS PANEL (right side) -->
+    <div id="dots-panel">
+      <div id="dots"></div>
+    </div>
+
+    <!-- NAV -->
+    <div id="nav">
+      <span id="slide-counter">1 / 8</span>
+      <div id="nav-btns">
+        <button class="nav-btn" onclick="go(-1)">← Trước</button>
+        <button class="nav-btn" onclick="go(1)">Tiếp →</button>
+      </div>
+    </div>
+
+    <script type="module">
+      /* ---- SLIDES LOGIC ---- */
+      const slides = document.querySelectorAll(".slide");
+      let cur = 0;
+      const dotsEl = document.getElementById("dots");
+      const counter = document.getElementById("slide-counter");
+
+      slides.forEach((_, i) => {
+        const d = document.createElement("div");
+        d.className = "dot" + (i === 0 ? " active" : "");
+        d.onclick = () => goTo(i);
+        dotsEl.appendChild(d);
+      });
+
+      function goTo(n) {
+        slides[cur].classList.remove("active");
+        dotsEl.children[cur].classList.remove("active");
+        cur = (n + slides.length) % slides.length;
+        slides[cur].classList.add("active");
+        dotsEl.children[cur].classList.add("active");
+        counter.textContent = cur + 1 + " / " + slides.length;
+      }
+      window.go = (d) => goTo(cur + d);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") go(1);
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(-1);
+      });
+
+      /* ---- AUTO SCALE TO FILL VIEWPORT ---- */
+      function scalePresentation() {
+        const el = document.getElementById("presentation");
+        if (!el) return;
+        const scaleX = window.innerWidth / 1280;
+        const scaleY = window.innerHeight / 720;
+        const scale = Math.min(scaleX, scaleY);
+        el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      }
+      scalePresentation();
+      window.addEventListener("resize", scalePresentation);
+
+      // Mở modal ERD tự thiết kế trực quan
+      let erdModalDone = false;
+      let currentActiveFilter = "all";
+
+      window.openUsecaseFullscreen = function () {
+        const modal = document.createElement("div");
+        modal.id = "usecase-fullscreen-modal";
+        modal.style.cssText = `
+          position: fixed;
+          inset: 0;
+          background: rgba(10, 14, 26, 0.98);
+          backdrop-filter: blur(8px);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: fadeIn 0.3s ease-out;
+        `;
+
+        const content = document.createElement("div");
+        content.style.cssText = `
+          position: relative;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        `;
+
+        const closeBtn = document.createElement("button");
+        closeBtn.innerHTML = "✕ Close";
+        closeBtn.style.cssText = `
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: rgba(239, 68, 68, 0.2);
+          border: 1px solid rgba(239, 68, 68, 0.5);
+          color: #ef4444;
+          padding: 10px 16px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          font-family: inherit;
+          z-index: 10000;
+          transition: all 0.2s;
+        `;
+        closeBtn.onmouseover = function () {
+          this.style.background = "rgba(239, 68, 68, 0.3)";
+          this.style.borderColor = "rgba(239, 68, 68, 0.8)";
+        };
+        closeBtn.onmouseout = function () {
+          this.style.background = "rgba(239, 68, 68, 0.2)";
+          this.style.borderColor = "rgba(239, 68, 68, 0.5)";
+        };
+        closeBtn.onclick = function () {
+          modal.remove();
+        };
+
+        const img = document.createElement("img");
+        img.src =
+          "https://smart-hospital-avatar-storage.s3.ap-southeast-1.amazonaws.com/other-img/usecase.jpg";
+        img.alt = "Usecase Diagram Fullscreen";
+        img.style.cssText = `
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+          animation: zoomIn 0.3s ease-out;
+        `;
+
+        content.appendChild(img);
+        content.appendChild(closeBtn);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+      };
+
+      window.openERDModal = function () {
+        const modal = document.getElementById("erd-modal");
+        modal.classList.add("open");
+
+        if (!erdModalDone) {
+          initCustomERD();
+          erdModalDone = true;
+        } else {
+          // Vẽ lại các quan hệ sau khi hiển thị modal để định vị chuẩn xác
+          setTimeout(drawAllConnections, 100);
+        }
+      };
+
+      window.closeERDModal = function () {
+        document.getElementById("erd-modal").classList.remove("open");
+      };
+
+      const tableSchemas = {
+        departments: {
+          title: "🏥 departments",
+          group: "core",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "name", type: "varchar" },
+            { name: "description", type: "text" },
+          ],
+        },
+        users: {
+          title: "👤 users",
+          group: "core",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "full_name", type: "varchar" },
+            { name: "email", type: "varchar" },
+            { name: "phone", type: "varchar" },
+            { name: "role", type: "varchar" },
+            { name: "is_locked", type: "boolean" },
+            { name: "department_id", type: "uuid", key: "fk" },
+            { name: "experience_years", type: "integer" },
+            { name: "preferred_time_pattern", type: "jsonb" },
+            { name: "created_at", type: "timestamp" },
+          ],
+        },
+        password_reset_tokens: {
+          title: "🔑 password_tokens",
+          group: "core",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "user_id", type: "uuid", key: "fk" },
+            { name: "token_hash", type: "varchar" },
+            { name: "expires_at", type: "timestamptz" },
+          ],
+        },
+        doctor_schedules: {
+          title: "📅 schedules",
+          group: "schedule",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "doctor_id", type: "uuid", key: "fk" },
+            { name: "work_day", type: "date" },
+            { name: "start_time", type: "time" },
+            { name: "end_time", type: "time" },
+          ],
+        },
+        appointment_slots: {
+          title: "🕐 appointment_slots",
+          group: "schedule",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "doctor_id", type: "uuid", key: "fk" },
+            { name: "slot_time", type: "timestamp" },
+            { name: "status", type: "slot_status" },
+          ],
+        },
+        appointments: {
+          title: "📅 appointments",
+          group: "clinical",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "user_id", type: "uuid", key: "fk" },
+            { name: "doctor_id", type: "uuid", key: "fk" },
+            { name: "slot_id", type: "uuid", key: "fk" },
+            { name: "symptoms", type: "text" },
+            { name: "status", type: "varchar" },
+            { name: "deposit_amount", type: "numeric" },
+            { name: "cancelled_by", type: "uuid", key: "fk" },
+          ],
+        },
+        appointment_reminders: {
+          title: "🔔 reminders",
+          group: "clinical",
+          fields: [
+            { name: "appointment_id", type: "uuid", key: "pk" },
+            { name: "kind", type: "varchar", key: "pk" },
+            { name: "sent_at", type: "timestamptz" },
+          ],
+        },
+        payments: {
+          title: "💳 payments",
+          group: "clinical",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "appointment_id", type: "uuid", key: "fk" },
+            { name: "amount", type: "numeric" },
+            { name: "payment_type", type: "varchar" },
+            { name: "payment_method", type: "varchar" },
+            { name: "status", type: "varchar" },
+          ],
+        },
+        doctor_leave_requests: {
+          title: "🏖 leave_requests",
+          group: "schedule",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "doctor_id", type: "uuid", key: "fk" },
+            { name: "start_date", type: "date" },
+            { name: "end_date", type: "date" },
+            { name: "status", type: "varchar" },
+            { name: "reviewed_by", type: "uuid", key: "fk" },
+          ],
+        },
+        medical_records: {
+          title: "🩺 medical_records",
+          group: "clinical",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "patient_id", type: "uuid", key: "fk" },
+            { name: "doctor_id", type: "uuid", key: "fk" },
+            { name: "appointment_id", type: "uuid", key: "fk" },
+            { name: "diagnosis", type: "text" },
+            { name: "treatment", type: "text" },
+          ],
+        },
+        record_embeddings: {
+          title: "🧠 record_embeddings",
+          group: "ai",
+          fields: [
+            { name: "record_id", type: "uuid", key: "pk" },
+            { name: "doctor_id", type: "uuid", key: "fk" },
+            { name: "patient_id", type: "uuid", key: "fk" },
+            { name: "embedding", type: "vector" },
+          ],
+        },
+        doctor_chat_sessions: {
+          title: "💬 chat_sessions",
+          group: "ai",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "doctor_id", type: "uuid", key: "fk" },
+            { name: "title", type: "varchar" },
+          ],
+        },
+        doctor_chat_messages: {
+          title: "💬 chat_messages",
+          group: "ai",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "session_id", type: "uuid", key: "fk" },
+            { name: "role", type: "varchar" },
+            { name: "content", type: "text" },
+          ],
+        },
+        advertisements: {
+          title: "📢 advertisements",
+          group: "core",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "title", type: "varchar" },
+            { name: "created_by", type: "uuid", key: "fk" },
+          ],
+        },
+        system_config: {
+          title: "⚙ system_config",
+          group: "core",
+          fields: [
+            { name: "key", type: "varchar", key: "pk" },
+            { name: "value", type: "text" },
+            { name: "updated_by", type: "uuid", key: "fk" },
+          ],
+        },
+        ai_usage: {
+          title: "📊 ai_usage",
+          group: "ai",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "feature", type: "varchar" },
+            { name: "user_id", type: "uuid", key: "fk" },
+          ],
+        },
+        ai_specialty_suggestions: {
+          title: "🤖 specialty_suggestions",
+          group: "ai",
+          fields: [
+            { name: "id", type: "uuid", key: "pk" },
+            { name: "symptoms_hash", type: "varchar" },
+            { name: "hits", type: "integer" },
+          ],
+        },
+      };
+
+      const tablePositions = {
+        departments: { x: 30, y: 30 },
+        users: { x: 30, y: 155 },
+        password_reset_tokens: { x: 30, y: 440 },
+        system_config: { x: 30, y: 585 },
+
+        doctor_leave_requests: { x: 345, y: 30 },
+        doctor_schedules: { x: 345, y: 215 },
+        appointment_slots: { x: 345, y: 390 },
+        advertisements: { x: 345, y: 545 },
+
+        appointments: { x: 670, y: 110 },
+        appointment_reminders: { x: 670, y: 380 },
+        payments: { x: 670, y: 520 },
+
+        medical_records: { x: 990, y: 30 },
+        record_embeddings: { x: 990, y: 220 },
+        doctor_chat_sessions: { x: 990, y: 390 },
+        doctor_chat_messages: { x: 990, y: 525 },
+        ai_usage: { x: 990, y: 660 },
+        ai_specialty_suggestions: { x: 990, y: 785 },
+      };
+
+      const relations = [
+        {
+          from: "users",
+          fromField: "department_id",
+          to: "departments",
+          toField: "id",
+        },
+        {
+          from: "password_reset_tokens",
+          fromField: "user_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "doctor_schedules",
+          fromField: "doctor_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "appointment_slots",
+          fromField: "doctor_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "appointments",
+          fromField: "user_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "appointments",
+          fromField: "doctor_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "appointments",
+          fromField: "cancelled_by",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "appointments",
+          fromField: "slot_id",
+          to: "appointment_slots",
+          toField: "id",
+        },
+        {
+          from: "appointment_reminders",
+          fromField: "appointment_id",
+          to: "appointments",
+          toField: "id",
+        },
+        {
+          from: "payments",
+          fromField: "appointment_id",
+          to: "appointments",
+          toField: "id",
+        },
+        {
+          from: "doctor_leave_requests",
+          fromField: "doctor_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "doctor_leave_requests",
+          fromField: "reviewed_by",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "medical_records",
+          fromField: "patient_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "medical_records",
+          fromField: "doctor_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "medical_records",
+          fromField: "appointment_id",
+          to: "appointments",
+          toField: "id",
+        },
+        {
+          from: "advertisements",
+          fromField: "created_by",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "system_config",
+          fromField: "updated_by",
+          to: "users",
+          toField: "id",
+        },
+        { from: "ai_usage", fromField: "user_id", to: "users", toField: "id" },
+        {
+          from: "record_embeddings",
+          fromField: "record_id",
+          to: "medical_records",
+          toField: "id",
+        },
+        {
+          from: "record_embeddings",
+          fromField: "doctor_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "record_embeddings",
+          fromField: "patient_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "doctor_chat_sessions",
+          fromField: "doctor_id",
+          to: "users",
+          toField: "id",
+        },
+        {
+          from: "doctor_chat_messages",
+          fromField: "session_id",
+          to: "doctor_chat_sessions",
+          toField: "id",
+        },
+      ];
+
+      function initCustomERD() {
+        const container = document.getElementById("erd-cards-container");
+        if (!container) return;
+        container.innerHTML = "";
+
+        // Tạo các Card bảng biểu
+        Object.entries(tableSchemas).forEach(([tableName, schema]) => {
+          const pos = tablePositions[tableName] || { x: 100, y: 100 };
+          const card = document.createElement("div");
+          card.id = `card-${tableName}`;
+          card.className = "erd-workspace-card";
+          card.setAttribute("data-group", schema.group);
+          card.style.left = `${pos.x}px`;
+          card.style.top = `${pos.y}px`;
+
+          let headerColor = "#cbd5e1";
+          let headerBg = "rgba(255, 255, 255, 0.08)";
+          if (schema.group === "core") {
+            headerColor = "#00d4ff";
+            headerBg = "rgba(0, 212, 255, 0.12)";
+          } else if (schema.group === "schedule") {
+            headerColor = "#a78bfa";
+            headerBg = "rgba(124, 58, 237, 0.12)";
+          } else if (schema.group === "clinical") {
+            headerColor = "#10b981";
+            headerBg = "rgba(16, 185, 129, 0.12)";
+          } else if (schema.group === "ai") {
+            headerColor = "#ec4899";
+            headerBg = "rgba(236, 72, 153, 0.12)";
+          }
+
+          let html = `
+            <div style="background: ${headerBg}; padding: 6px 10px; font-weight: 700; color: ${headerColor}; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 11px; display: flex; align-items: center; justify-content: space-between;">
+              <span>${schema.title}</span>
+              <span style="font-size: 8px; opacity: 0.5; text-transform: uppercase;">${schema.group}</span>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+          `;
+
+          schema.fields.forEach((field) => {
+            const isPk = field.key === "pk";
+            const isFk = field.key === "fk";
+            const rowClass = isPk
+              ? "erd-card-row pk"
+              : isFk
+                ? "erd-card-row fk"
+                : "erd-card-row";
+            const keyIcon = isPk ? "🔑" : isFk ? "🔗" : "";
+
+            html += `
+              <div id="field-${tableName}-${field.name}" class="${rowClass}" data-field="${field.name}">
+                <div>
+                  <span style="color: rgba(255, 255, 255, 0.4); margin-right: 4px; font-size: 9px;">${keyIcon}</span>
+                  ${field.name}
+                </div>
+                <span>${field.type}</span>
+              </div>
+            `;
+          });
+
+          html += `</div>`;
+          card.innerHTML = html;
+
+          // Sự kiện Hover làm nổi bật
+          card.addEventListener("mouseenter", () =>
+            highlightTableRelations(tableName),
+          );
+          card.addEventListener("mouseleave", resetHighlights);
+
+          container.appendChild(card);
+        });
+
+        // Đăng ký sự kiện hover cho các row cụ thể để xem quan hệ trực tiếp
+        relations.forEach((rel) => {
+          const fromRow = document.getElementById(
+            `field-${rel.from}-${rel.fromField}`,
+          );
+          const toRow = document.getElementById(
+            `field-${rel.to}-${rel.toField}`,
+          );
+
+          if (fromRow) {
+            fromRow.addEventListener("mouseenter", (e) => {
+              e.stopPropagation();
+              highlightDirectRelation(
+                rel.from,
+                rel.fromField,
+                rel.to,
+                rel.toField,
+              );
+            });
+            fromRow.addEventListener("mouseleave", resetHighlights);
+          }
+          if (toRow) {
+            toRow.addEventListener("mouseenter", (e) => {
+              e.stopPropagation();
+              highlightDirectRelation(
+                rel.from,
+                rel.fromField,
+                rel.to,
+                rel.toField,
+              );
+            });
+            toRow.addEventListener("mouseleave", resetHighlights);
+          }
+        });
+
+        // Vẽ các đường kết nối sau khi render
+        setTimeout(() => {
+          drawAllConnections();
+          fitERDToScreen();
+        }, 100);
+      }
+
+      function getCardOffset(el) {
+        // Lấy vị trí tương đối với #erd-workspace (không bị ảnh hưởng bởi scale transform)
+        let x = 0,
+          y = 0;
+        let node = el;
+        const workspace = document.getElementById("erd-workspace");
+        while (node && node !== workspace) {
+          x += node.offsetLeft;
+          y += node.offsetTop;
+          node = node.offsetParent;
+        }
+        return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+      }
+
+      function drawAllConnections() {
+        const svg = document.getElementById("erd-connections-svg");
+        const workspace = document.getElementById("erd-workspace");
+        if (!svg || !workspace) return;
+
+        // Xóa các đường cũ
+        svg
+          .querySelectorAll(".relation-path, .relation-label")
+          .forEach((p) => p.remove());
+
+        // Màu theo group của bảng nguồn
+        const groupColors = {
+          core: "#00d4ff",
+          schedule: "#a78bfa",
+          clinical: "#10b981",
+          ai: "#ec4899",
+        };
+
+        relations.forEach((rel) => {
+          const elFrom = document.getElementById(
+            `field-${rel.from}-${rel.fromField}`,
+          );
+          const elTo = document.getElementById(
+            `field-${rel.to}-${rel.toField}`,
+          );
+          const cardFromEl = document.getElementById(`card-${rel.from}`);
+          const cardToEl = document.getElementById(`card-${rel.to}`);
+
+          if (!elFrom || !elTo || !cardFromEl || !cardToEl) return;
+
+          // Vị trí card (offset trong workspace)
+          const cFrom = getCardOffset(cardFromEl);
+          const cTo = getCardOffset(cardToEl);
+
+          // Vị trí field row (offset trong card)
+          const fFromTop = elFrom.offsetTop + elFrom.offsetHeight / 2;
+          const fToTop = elTo.offsetTop + elTo.offsetHeight / 2;
+
+          // Tâm Y tuyệt đối trong workspace
+          const y1 = cFrom.y + fFromTop;
+          const y2 = cTo.y + fToTop;
+
+          // X: chọn cạnh trái/phải của card để đường không đâm vào card
+          let x1, x2;
+          const fromCenterX = cFrom.x + cFrom.w / 2;
+          const toCenterX = cTo.x + cTo.w / 2;
+
+          if (fromCenterX <= toCenterX) {
+            x1 = cFrom.x + cFrom.w; // cạnh phải của card nguồn
+            x2 = cTo.x; // cạnh trái của card đích
+          } else {
+            x1 = cFrom.x; // cạnh trái của card nguồn
+            x2 = cTo.x + cTo.w; // cạnh phải của card đích
+          }
+
+          // Bezier control points
+          const dist = Math.abs(x2 - x1);
+          const ctrl = Math.min(150, Math.max(60, dist * 0.5));
+          const cp1x = x1 + (x2 > x1 ? ctrl : -ctrl);
+          const cp2x = x2 + (x2 > x1 ? -ctrl : ctrl);
+
+          const group = cardFromEl.getAttribute("data-group") || "core";
+          const color = groupColors[group] || "#64748b";
+
+          // Tạo path
+          const path = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path",
+          );
+          path.setAttribute(
+            "d",
+            `M ${x1} ${y1} C ${cp1x} ${y1}, ${cp2x} ${y2}, ${x2} ${y2}`,
+          );
+          path.setAttribute("class", "relation-path");
+          path.setAttribute(
+            "id",
+            `path-${rel.from}-${rel.fromField}-${rel.to}-${rel.toField}`,
+          );
+          path.setAttribute("data-from", rel.from);
+          path.setAttribute("data-to", rel.to);
+          path.setAttribute("marker-end", `url(#marker-arrow-${group})`);
+          path.style.stroke = color;
+          path.style.strokeWidth = "2px";
+          path.style.opacity = "0.65";
+
+          svg.appendChild(path);
+        });
+      }
+
+      function highlightTableRelations(tableName) {
+        const cards = document.querySelectorAll(".erd-workspace-card");
+        const paths = document.querySelectorAll(".relation-path");
+
+        const relatedTables = new Set([tableName]);
+
+        paths.forEach((path) => {
+          const from = path.getAttribute("data-from");
+          const to = path.getAttribute("data-to");
+
+          if (from === tableName || to === tableName) {
+            path.classList.add("highlighted");
+            path.classList.remove("dimmed");
+            relatedTables.add(from);
+            relatedTables.add(to);
+          } else {
+            path.classList.add("dimmed");
+            path.classList.remove("highlighted");
+          }
+        });
+
+        cards.forEach((card) => {
+          const id = card.id.replace("card-", "");
+          if (id === tableName) {
+            card.classList.add("highlighted");
+            card.classList.remove("dimmed");
+          } else if (relatedTables.has(id)) {
+            card.classList.add("related-highlight");
+            card.classList.remove("dimmed");
+          } else {
+            card.classList.add("dimmed");
+            card.classList.remove("highlighted", "related-highlight");
+          }
+        });
+      }
+
+      function highlightDirectRelation(fromTable, fromField, toTable, toField) {
+        const cards = document.querySelectorAll(".erd-workspace-card");
+        const paths = document.querySelectorAll(".relation-path");
+        const targetPathId = `path-${fromTable}-${fromField}-${toTable}-${toField}`;
+
+        paths.forEach((path) => {
+          if (path.id === targetPathId) {
+            path.classList.add("direct-hover");
+            path.classList.remove("dimmed");
+          } else {
+            path.classList.add("dimmed");
+            path.classList.remove("direct-hover", "highlighted");
+          }
+        });
+
+        cards.forEach((card) => {
+          const id = card.id.replace("card-", "");
+          if (id === fromTable || id === toTable) {
+            card.classList.add("highlighted");
+            card.classList.remove("dimmed");
+          } else {
+            card.classList.add("dimmed");
+            card.classList.remove("highlighted", "related-highlight");
+          }
+        });
+      }
+
+      function resetHighlights() {
+        const cards = document.querySelectorAll(".erd-workspace-card");
+        const paths = document.querySelectorAll(".relation-path");
+
+        cards.forEach((card) => {
+          card.classList.remove("dimmed", "highlighted", "related-highlight");
+          if (currentActiveFilter !== "all") {
+            const group = card.getAttribute("data-group");
+            if (group !== currentActiveFilter) {
+              card.classList.add("dimmed");
+            }
+          }
+        });
+
+        paths.forEach((path) => {
+          path.classList.remove("dimmed", "highlighted", "direct-hover");
+        });
+      }
+
+      window.filterERDGroup = function (groupName) {
+        currentActiveFilter = groupName;
+
+        const filterBtns = document.querySelectorAll(".filter-btn");
+        filterBtns.forEach((btn) => {
+          if (btn.getAttribute("onclick").includes(groupName)) {
+            btn.classList.add("active");
+          } else {
+            btn.classList.remove("active");
+          }
+        });
+
+        const cards = document.querySelectorAll(".erd-workspace-card");
+        const paths = document.querySelectorAll(".relation-path");
+
+        cards.forEach((card) => {
+          card.classList.remove("dimmed", "highlighted", "related-highlight");
+          if (groupName !== "all") {
+            const group = card.getAttribute("data-group");
+            if (group !== groupName) {
+              card.classList.add("dimmed");
+            }
+          }
+        });
+
+        paths.forEach((path) => {
+          path.classList.remove("highlighted", "direct-hover", "dimmed");
+          if (groupName !== "all") {
+            const fromCard = document.getElementById(
+              `card-${path.getAttribute("data-from")}`,
+            );
+            const toCard = document.getElementById(
+              `card-${path.getAttribute("data-to")}`,
+            );
+
+            const fromGroup = fromCard
+              ? fromCard.getAttribute("data-group")
+              : "";
+            const toGroup = toCard ? toCard.getAttribute("data-group") : "";
+
+            if (fromGroup !== groupName && toGroup !== groupName) {
+              path.classList.add("dimmed");
+            }
+          }
+        });
+      };
+
+      // Zoom & Fit screen
+      let erdScale = 0.85;
+      window.erdZoom = function (delta) {
+        erdScale = Math.min(2.5, Math.max(0.2, erdScale + delta));
+        applyZoom();
+      };
+
+      function applyZoom() {
+        const workspace = document.getElementById("erd-workspace");
+        if (workspace) workspace.style.transform = `scale(${erdScale})`;
+        const label = document.getElementById("zoom-level-label");
+        if (label) label.textContent = Math.round(erdScale * 100) + "%";
+      }
+
+      function fitERDToScreen() {
+        const container = document.getElementById("erd-canvas-container");
+        const workspace = document.getElementById("erd-workspace");
+        if (!container || !workspace) return;
+
+        const scaleX = container.clientWidth / 1300;
+        const scaleY = container.clientHeight / 880;
+
+        erdScale = Math.min(scaleX, scaleY, 1.0) * 0.95;
+        applyZoom();
+      }
+
+      window.addEventListener("resize", () => {
+        const modal = document.getElementById("erd-modal");
+        if (modal && modal.classList.contains("open")) {
+          drawAllConnections();
+          fitERDToScreen();
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") window.closeERDModal();
+      });
+
+      /* ---- SPRINT BACKLOG LOGIC ---- */
+      const sprintData = {
+        1: {
+          title: "Sprint 1",
+          sp: "97 SP",
+          time: "📅 10/03 → 03/04",
+          goal: "Xây dựng nền tảng hệ thống cốt lõi (Core Foundation), cơ sở dữ liệu Entity & phân quyền người dùng.",
+          deliverables: [
+            "Thiết lập Database PostgreSQL, Docker & TypeORM Entity.",
+            "Hoàn thành hệ thống Đăng nhập, Đăng ký, Quên mật khẩu & phân quyền người dùng dựa trên Vai trò (RBAC).",
+            "Xây dựng cấu trúc khung Layout Dashboard cho 3 nhóm người dùng: Bệnh nhân, Bác sĩ & Admin.",
+          ],
+          img: "https://smart-hospital-avatar-storage.s3.ap-southeast-1.amazonaws.com/other-img/sprint-1.png",
+        },
+        2: {
+          title: "Sprint 2",
+          sp: "138 SP",
+          time: "📅 05/04 → 30/04",
+          goal: "Phát triển tính năng đặt lịch khám bệnh cốt lõi và tích hợp cổng thanh toán trực tuyến.",
+          deliverables: [
+            "Xây dựng tính năng đặt lịch khám, quản lý các khung giờ làm việc linh hoạt của Bác sĩ.",
+            "Tích hợp cổng thanh toán trực tuyến PayOS, hỗ trợ thanh toán qua mã QR ngân hàng cực kỳ tiện lợi.",
+            "Thiết lập hệ thống gửi Email tự động thông báo đặt lịch thành công & nhắc nhở lịch tái khám.",
+          ],
+          img: "https://smart-hospital-avatar-storage.s3.ap-southeast-1.amazonaws.com/other-img/sprint-2.png",
+        },
+        3: {
+          title: "Sprint 3",
+          sp: "105 SP",
+          time: "📅 01/05 → 10/05",
+          goal: "Tích hợp trí tuệ nhân tạo (AI Assistant), RAG hỗ trợ bác sĩ và hoàn thiện chức năng phụ trợ.",
+          deliverables: [
+            "Tích hợp mô hình AI phân tích triệu chứng sơ bộ & gợi ý khoa khám phù hợp tự động cho người bệnh.",
+            "Xây dựng Trợ lý RAG hỗ trợ Bác sĩ tra cứu nhanh tài liệu chuyên môn và lịch sử bệnh án.",
+            "Hoàn thiện trang quản lý banner quảng cáo, quản lý cấu hình và theo dõi chi phí sử dụng token AI.",
+          ],
+          img: "https://smart-hospital-avatar-storage.s3.ap-southeast-1.amazonaws.com/other-img/sprint-3.png",
+        },
+      };
+
+      window.switchSprint = function (sprintNum) {
+        // Cập nhật trạng thái active cho nút tab
+        const buttons = document.querySelectorAll(".sprint-tab-btn");
+        buttons.forEach((btn, idx) => {
+          if (idx === sprintNum - 1) {
+            btn.classList.add("active");
+          } else {
+            btn.classList.remove("active");
+          }
+        });
+
+        const data = sprintData[sprintNum];
+        if (!data) return;
+
+        // Cập nhật hình ảnh biểu đồ
+        const imgEl = document.getElementById("active-sprint-img");
+        if (imgEl) {
+          imgEl.style.opacity = 0;
+          setTimeout(() => {
+            imgEl.src = data.img;
+            imgEl.style.opacity = 1;
+          }, 150);
+        }
+
+        // Cập nhật chi tiết text
+        document.getElementById("sprint-detail-title").textContent = data.title;
+        document.getElementById("sprint-detail-sp").textContent = data.sp;
+        document.getElementById("sprint-detail-time").textContent = data.time;
+        document.getElementById("sprint-detail-goal").textContent = data.goal;
+
+        const listEl = document.getElementById("sprint-detail-deliverables");
+        if (listEl) {
+          listEl.innerHTML = data.deliverables
+            .map((item) => `<li>${item}</li>`)
+            .join("");
+        }
+      };
+
+      window.openChartLightbox = function () {
+        const lightbox = document.getElementById("chart-lightbox");
+        const activeImg = document.getElementById("active-sprint-img");
+        const lightboxImg = document.getElementById("lightbox-img");
+
+        if (lightbox && activeImg && lightboxImg) {
+          lightboxImg.src = activeImg.src;
+          lightbox.style.display = "flex";
+          setTimeout(() => {
+            lightbox.style.opacity = 1;
+          }, 10);
+        }
+      };
+
+      window.closeChartLightbox = function () {
+        const lightbox = document.getElementById("chart-lightbox");
+        if (lightbox) {
+          lightbox.style.opacity = 0;
+          setTimeout(() => {
+            lightbox.style.display = "none";
+          }, 200);
+        }
+      };
+    </script>
+  </body>
+</html>

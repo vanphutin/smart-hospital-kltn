@@ -62,7 +62,11 @@ export class SlotSuggestService {
     const doctorId = args.doctorId?.trim();
     if (!doctorId) throw new BadRequestException('Thiếu doctorId');
 
-    const daysAhead = clamp(args.daysAhead ?? DEFAULT_DAYS_AHEAD, 1, MAX_DAYS_AHEAD);
+    const daysAhead = clamp(
+      args.daysAhead ?? DEFAULT_DAYS_AHEAD,
+      1,
+      MAX_DAYS_AHEAD,
+    );
 
     // 1. Pattern cá nhân (cache trong users.preferred_time_pattern). Refresh nếu null/cũ.
     let pattern = await this.getOrBuildPattern(args.userId);
@@ -95,7 +99,12 @@ export class SlotSuggestService {
     // 4. Score & rank.
     const shiftPreference = this.detectShiftPreference(symptoms);
     const scored = candidates.map((c) =>
-      this.scoreSlot(c, { pattern: personalized ? pattern : null, urgent, shiftPreference, now: new Date() }),
+      this.scoreSlot(c, {
+        pattern: personalized ? pattern : null,
+        urgent,
+        shiftPreference,
+        now: new Date(),
+      }),
     );
     scored.sort((a, b) => b.score - a.score);
 
@@ -109,11 +118,16 @@ export class SlotSuggestService {
   }
 
   /** Lấy pattern hiện tại; rebuild nếu null hoặc cũ hơn 30 ngày. */
-  private async getOrBuildPattern(userId: string): Promise<PreferredTimePattern | null> {
+  private async getOrBuildPattern(
+    userId: string,
+  ): Promise<PreferredTimePattern | null> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) return null;
     const cached = user.preferredTimePattern;
-    if (cached && Date.now() - new Date(cached.builtAt).getTime() < 30 * 24 * 3600 * 1000) {
+    if (
+      cached &&
+      Date.now() - new Date(cached.builtAt).getTime() < 30 * 24 * 3600 * 1000
+    ) {
       return cached;
     }
     const fresh = await this.buildPatternFromHistory(userId);
@@ -122,14 +136,18 @@ export class SlotSuggestService {
       try {
         await this.userRepo.save(user);
       } catch (e) {
-        this.logger.warn(`Không lưu được pattern cho user ${userId}: ${e instanceof Error ? e.message : e}`);
+        this.logger.warn(
+          `Không lưu được pattern cho user ${userId}: ${e instanceof Error ? e.message : e}`,
+        );
       }
     }
     return fresh;
   }
 
   /** Tổng hợp pattern từ lịch sử appointment 6 tháng gần nhất (status confirmed/completed). */
-  private async buildPatternFromHistory(userId: string): Promise<PreferredTimePattern> {
+  private async buildPatternFromHistory(
+    userId: string,
+  ): Promise<PreferredTimePattern> {
     const rows = (await this.dataSource.query(
       `
       SELECT s.slot_time
@@ -197,7 +215,12 @@ export class SlotSuggestService {
 
   private scoreSlot(
     s: CandidateSlot,
-    ctx: { pattern: PreferredTimePattern | null; urgent: boolean; shiftPreference: 'morning' | 'afternoon' | null; now: Date },
+    ctx: {
+      pattern: PreferredTimePattern | null;
+      urgent: boolean;
+      shiftPreference: 'morning' | 'afternoon' | null;
+      now: Date;
+    },
   ): SlotSuggestionItem {
     const reasons: string[] = [];
     let score = 0;
@@ -215,7 +238,9 @@ export class SlotSuggestService {
     if (ctx.urgent) {
       if (hoursAhead <= 24) {
         score += 50;
-        reasons.push('Triệu chứng có dấu hiệu cần khám sớm — slot trong 24h tới');
+        reasons.push(
+          'Triệu chứng có dấu hiệu cần khám sớm — slot trong 24h tới',
+        );
       } else if (hoursAhead <= 72) {
         score += 25;
         reasons.push('Triệu chứng đáng lưu ý — nên khám trong vài ngày tới');
@@ -253,7 +278,10 @@ export class SlotSuggestService {
     }
 
     // (e) Ưu tiên khung giờ "vàng" (8–10h, 14–16h) khi không có pattern cá nhân và không có shift preference.
-    if (!ctx.shiftPreference && (!ctx.pattern || ctx.pattern.totalSamples < PATTERN_MIN_SAMPLES)) {
+    if (
+      !ctx.shiftPreference &&
+      (!ctx.pattern || ctx.pattern.totalSamples < PATTERN_MIN_SAMPLES)
+    ) {
       if ((h >= 8 && h <= 10) || (h >= 14 && h <= 16)) {
         score += 5;
         reasons.push('Khung giờ phổ biến, ít chen chúc');
@@ -306,7 +334,9 @@ Trả về JSON đúng schema: {"urgent": boolean, "reason": string}.
         reason: typeof parsed.reason === 'string' ? parsed.reason : null,
       };
     } catch (e) {
-      this.logger.warn(`Phân loại khẩn lỗi: ${e instanceof Error ? e.message : e}`);
+      this.logger.warn(
+        `Phân loại khẩn lỗi: ${e instanceof Error ? e.message : e}`,
+      );
       return { urgent: false, reason: null };
     }
   }
@@ -320,14 +350,35 @@ Trả về JSON đúng schema: {"urgent": boolean, "reason": string}.
     const t = text.toLowerCase();
 
     const afternoonKeywords = [
-      'chiều', 'buổi chiều', 'ca chiều', 'sáng bận', 'bận sáng',
-      'sáng không rảnh', 'không rảnh sáng', 'afternoon', 'pm',
-      'sau 12', 'sau 12h', 'sau trưa', 'từ 13', 'từ 14',
+      'chiều',
+      'buổi chiều',
+      'ca chiều',
+      'sáng bận',
+      'bận sáng',
+      'sáng không rảnh',
+      'không rảnh sáng',
+      'afternoon',
+      'pm',
+      'sau 12',
+      'sau 12h',
+      'sau trưa',
+      'từ 13',
+      'từ 14',
     ];
     const morningKeywords = [
-      'sáng', 'buổi sáng', 'ca sáng', 'chiều bận', 'bận chiều',
-      'chiều không rảnh', 'morning', 'am',
-      'trước 12', 'trước trưa', 'từ 8', 'từ 9', 'từ 10',
+      'sáng',
+      'buổi sáng',
+      'ca sáng',
+      'chiều bận',
+      'bận chiều',
+      'chiều không rảnh',
+      'morning',
+      'am',
+      'trước 12',
+      'trước trưa',
+      'từ 8',
+      'từ 9',
+      'từ 10',
     ];
 
     if (afternoonKeywords.some((k) => t.includes(k))) return 'afternoon';
@@ -341,5 +392,7 @@ function clamp(n: number, lo: number, hi: number): number {
 }
 
 function weekdayLabel(wd: number): string {
-  return ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] ?? '';
+  return (
+    ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] ?? ''
+  );
 }

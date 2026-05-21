@@ -1,5 +1,3 @@
-process.env.TZ = process.env.TZ ?? 'Asia/Ho_Chi_Minh';
-
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
