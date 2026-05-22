@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../models/user.model';
@@ -60,6 +64,7 @@ export class DoctorsService {
       .createQueryBuilder('u')
       .leftJoinAndSelect('u.department', 'department')
       .where("u.role = 'doctor'")
+      .andWhere('u.isLocked = :isLocked', { isLocked: false })
       .orderBy('u.fullName', 'ASC');
     if (departmentId) {
       qb.andWhere('u.departmentId = :departmentId', { departmentId });
@@ -69,7 +74,7 @@ export class DoctorsService {
 
   async findOne(id: string): Promise<UserEntity | null> {
     const user = await this.userRepo.findOne({
-      where: { id, role: 'doctor' },
+      where: { id, role: 'doctor', isLocked: false },
       relations: { department: true },
     });
     if (!user) return null;
@@ -109,7 +114,9 @@ export class DoctorsService {
       qb.andWhere(sqlSlotNotInLunchBreak('s'));
     } else {
       // Ẩn slot trống trong giờ nghỉ trưa (dữ liệu cũ); vẫn hiện slot đã đặt nếu có.
-      qb.andWhere(`(s.status != 'available' OR ${sqlSlotNotInLunchBreak('s')})`);
+      qb.andWhere(
+        `(s.status != 'available' OR ${sqlSlotNotInLunchBreak('s')})`,
+      );
     }
     return qb.getMany();
   }
@@ -124,9 +131,14 @@ export class DoctorsService {
       .createQueryBuilder('a')
       .innerJoin('a.user', 'u')
       .leftJoin('a.slot', 's')
-      .leftJoin('medical_records', 'mr', 'mr.appointment_id = a.id AND mr.doctor_id = :docId', {
-        docId: doctorId,
-      })
+      .leftJoin(
+        'medical_records',
+        'mr',
+        'mr.appointment_id = a.id AND mr.doctor_id = :docId',
+        {
+          docId: doctorId,
+        },
+      )
       .select('u.id', 'patient_id')
       .addSelect('u.full_name', 'full_name')
       .addSelect('u.email', 'email')
@@ -149,10 +161,7 @@ export class DoctorsService {
         `MIN(CASE WHEN s.slot_time >= now() AND a.status IN ('confirmed', 'pending') THEN s.slot_time END)`,
         'next_appointment_at',
       )
-      .addSelect(
-        `BOOL_OR(mr.id IS NOT NULL)`,
-        'has_medical_record',
-      )
+      .addSelect(`BOOL_OR(mr.id IS NOT NULL)`, 'has_medical_record')
       .where('a.doctor_id = :doctorId', { doctorId })
       .groupBy('u.id')
       .addGroupBy('u.full_name')
@@ -185,8 +194,12 @@ export class DoctorsService {
       totalAppointments: Number(r.total_appointments ?? 0),
       completedAppointments: Number(r.completed_appointments ?? 0),
       upcomingAppointments: Number(r.upcoming_appointments ?? 0),
-      lastVisitAt: r.last_visit_at ? new Date(r.last_visit_at).toISOString() : null,
-      nextAppointmentAt: r.next_appointment_at ? new Date(r.next_appointment_at).toISOString() : null,
+      lastVisitAt: r.last_visit_at
+        ? new Date(r.last_visit_at).toISOString()
+        : null,
+      nextAppointmentAt: r.next_appointment_at
+        ? new Date(r.next_appointment_at).toISOString()
+        : null,
       hasMedicalRecord: Boolean(r.has_medical_record),
     }));
   }
@@ -208,7 +221,9 @@ export class DoctorsService {
       .leftJoin('medical_records', 'mr', 'mr.appointment_id = a.id')
       .addSelect('mr.id', 'mr_id')
       .where('a.doctorId = :doctorId', { doctorId })
-      .andWhere('a.status != :cancelled', { cancelled: AppointmentStatus.Cancelled });
+      .andWhere('a.status != :cancelled', {
+        cancelled: AppointmentStatus.Cancelled,
+      });
 
     if (fromDate) {
       qb.andWhere('slot.slot_time >= :from', { from: `${fromDate} 00:00:00` });
@@ -226,7 +241,13 @@ export class DoctorsService {
 
     return result.entities.map((a) => {
       const patient = a.user as
-        | { id?: string; fullName?: string; email?: string; phone?: string | null; avatarUrl?: string | null }
+        | {
+            id?: string;
+            fullName?: string;
+            email?: string;
+            phone?: string | null;
+            avatarUrl?: string | null;
+          }
         | undefined;
       const slot = a.slot as { id?: string; slotTime: Date } | null | undefined;
       return {
@@ -236,7 +257,10 @@ export class DoctorsService {
         depositAmount: a.depositAmount != null ? Number(a.depositAmount) : null,
         createdAt: a.createdAt.toISOString(),
         slot: slot
-          ? { id: slot.id ?? '', slotTime: new Date(slot.slotTime).toISOString() }
+          ? {
+              id: slot.id ?? '',
+              slotTime: new Date(slot.slotTime).toISOString(),
+            }
           : null,
         patient: patient
           ? {
