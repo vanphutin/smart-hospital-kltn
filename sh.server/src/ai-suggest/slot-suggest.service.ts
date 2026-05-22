@@ -211,52 +211,59 @@ export class SlotSuggestService {
     const earlinessScore = Math.max(0, 30 - hoursAhead) / 30; // 0..1
     score += earlinessScore * 10;
 
-    // (b) Khẩn → cộng đậm cho slot trong ≤24h, giảm dần đến 72h.
+    // (b) Khẩn → ưu tiên cực kỳ mạnh mẽ cho các slot sớm nhất có thể
     if (ctx.urgent) {
       if (hoursAhead <= 24) {
-        score += 50;
-        reasons.push('Triệu chứng có dấu hiệu cần khám sớm — slot trong 24h tới');
+        // Cộng 50 điểm cơ bản, nhưng trừ đi 1.5 điểm cho mỗi giờ chờ đợi (ưu tiên tuyệt đối slot sớm hơn)
+        const urgencyScore = Math.max(0, 50 - hoursAhead * 1.5);
+        score += urgencyScore;
+        reasons.push('Triệu chứng có dấu hiệu cần khám gấp — ưu tiên slot sớm nhất');
       } else if (hoursAhead <= 72) {
-        score += 25;
+        // Giảm dần điểm khi thời gian chờ tăng từ 24h đến 72h
+        const urgencyScore = Math.max(0, 25 - (hoursAhead - 24) * 0.5);
+        score += urgencyScore;
         reasons.push('Triệu chứng đáng lưu ý — nên khám trong vài ngày tới');
       }
     }
 
-    // (c) Shift preference — cộng mạnh nếu đúng ca user muốn, trừ điểm nếu sai ca.
-    if (ctx.shiftPreference === 'afternoon') {
-      if (isAfternoon) {
-        score += 30;
-        reasons.push('Phù hợp ca chiều bạn yêu cầu');
-      } else if (isMorning) {
-        score -= 25; // phạt ca sáng khi user nói bận sáng
+    // Chỉ xét các sở thích cá nhân khi KHÔNG khẩn cấp. Khẩn cấp sức khỏe là trên hết!
+    if (!ctx.urgent) {
+      // (c) Shift preference — cộng mạnh nếu đúng ca user muốn, trừ điểm nếu sai ca.
+      if (ctx.shiftPreference === 'afternoon') {
+        if (isAfternoon) {
+          score += 30;
+          reasons.push('Phù hợp ca chiều bạn yêu cầu');
+        } else if (isMorning) {
+          score -= 25; // phạt ca sáng khi user nói bận sáng
+        }
+      } else if (ctx.shiftPreference === 'morning') {
+        if (isMorning) {
+          score += 30;
+          reasons.push('Phù hợp ca sáng bạn yêu cầu');
+        } else if (isAfternoon) {
+          score -= 25;
+        }
       }
-    } else if (ctx.shiftPreference === 'morning') {
-      if (isMorning) {
-        score += 30;
-        reasons.push('Phù hợp ca sáng bạn yêu cầu');
-      } else if (isAfternoon) {
-        score -= 25;
-      }
-    }
 
-    // (d) Pattern cá nhân.
-    if (ctx.pattern && ctx.pattern.totalSamples >= PATTERN_MIN_SAMPLES) {
-      const wd = s.slotTime.getDay();
-      if (ctx.pattern.hourSlots.includes(h)) {
-        score += 15;
-        reasons.push(`Bạn thường khám lúc ${h}h`);
+      // (d) Pattern cá nhân.
+      if (ctx.pattern && ctx.pattern.totalSamples >= PATTERN_MIN_SAMPLES) {
+        const wd = s.slotTime.getDay();
+        if (ctx.pattern.hourSlots.includes(h)) {
+          score += 15;
+          reasons.push(`Bạn thường khám lúc ${h}h`);
+        }
+        if (ctx.pattern.weekdays.includes(wd)) {
+          score += 10;
+          reasons.push(`Bạn thường khám vào ${weekdayLabel(wd)}`);
+        }
       }
-      if (ctx.pattern.weekdays.includes(wd)) {
-        score += 10;
-        reasons.push(`Bạn thường khám vào ${weekdayLabel(wd)}`);
-      }
-    }
 
-    // (e) Ưu tiên khung giờ "vàng" (8–10h, 14–16h) khi không có pattern cá nhân và không có shift preference.
-    if (!ctx.shiftPreference && (!ctx.pattern || ctx.pattern.totalSamples < PATTERN_MIN_SAMPLES)) {
-      if ((h >= 8 && h <= 10) || (h >= 14 && h <= 16)) {
-        score += 5;
-        reasons.push('Khung giờ phổ biến, ít chen chúc');
+      // (e) Ưu tiên khung giờ "vàng" (8–10h, 14–16h) khi không có pattern cá nhân và không có shift preference.
+      if (!ctx.shiftPreference && (!ctx.pattern || ctx.pattern.totalSamples < PATTERN_MIN_SAMPLES)) {
+        if ((h >= 8 && h <= 10) || (h >= 14 && h <= 16)) {
+          score += 5;
+          reasons.push('Khung giờ phổ biến, ít chen chúc');
+        }
       }
     }
 
@@ -319,19 +326,48 @@ Trả về JSON đúng schema: {"urgent": boolean, "reason": string}.
   detectShiftPreference(text: string): 'morning' | 'afternoon' | null {
     const t = text.toLowerCase();
 
-    const afternoonKeywords = [
-      'chiều', 'buổi chiều', 'ca chiều', 'sáng bận', 'bận sáng',
-      'sáng không rảnh', 'không rảnh sáng', 'afternoon', 'pm',
-      'sau 12', 'sau 12h', 'sau trưa', 'từ 13', 'từ 14',
+    // 1. Kiểm tra các cụm từ thể hiện sự bận rộn / không rảnh ở một buổi nào đó
+    // Bận chiều -> muốn khám sáng
+    const busyAfternoonPatterns = [
+      'bận chiều', 'bận buổi chiều', 'bận ca chiều',
+      'chiều bận', 'chiều không rảnh', 'chiều ko rảnh',
+      'không rảnh chiều', 'không rảnh buổi chiều',
+      'ko rảnh chiều', 'ko rảnh buổi chiều',
+      'bận pm', 'pm bận',
     ];
-    const morningKeywords = [
-      'sáng', 'buổi sáng', 'ca sáng', 'chiều bận', 'bận chiều',
-      'chiều không rảnh', 'morning', 'am',
-      'trước 12', 'trước trưa', 'từ 8', 'từ 9', 'từ 10',
+    // Bận sáng -> muốn khám chiều
+    const busyMorningPatterns = [
+      'bận sáng', 'bận buổi sáng', 'bận ca sáng',
+      'sáng bận', 'sáng không rảnh', 'sáng ko rảnh',
+      'không rảnh sáng', 'không rảnh buổi sáng',
+      'ko rảnh sáng', 'ko rảnh buổi sáng',
+      'bận am', 'am bận',
     ];
 
-    if (afternoonKeywords.some((k) => t.includes(k))) return 'afternoon';
-    if (morningKeywords.some((k) => t.includes(k))) return 'morning';
+    if (busyAfternoonPatterns.some((p) => t.includes(p))) {
+      return 'morning';
+    }
+    if (busyMorningPatterns.some((p) => t.includes(p))) {
+      return 'afternoon';
+    }
+
+    // 2. Kiểm tra các cụm từ thể hiện sự ưu tiên hoặc rảnh ở một buổi cụ thể
+    const afternoonPatterns = [
+      'rảnh chiều', 'rảnh buổi chiều', 'ca chiều', 'khám chiều',
+      'sau 12h', 'sau 12', 'sau trưa', 'từ 13', 'từ 14', 'chiều', 'afternoon', 'pm',
+    ];
+    const morningPatterns = [
+      'rảnh sáng', 'rảnh buổi sáng', 'ca sáng', 'khám sáng',
+      'trước 12h', 'trước 12', 'trước trưa', 'từ 8', 'từ 9', 'từ 10', 'sáng', 'morning', 'am',
+    ];
+
+    if (afternoonPatterns.some((p) => t.includes(p))) {
+      return 'afternoon';
+    }
+    if (morningPatterns.some((p) => t.includes(p))) {
+      return 'morning';
+    }
+
     return null;
   }
 }
